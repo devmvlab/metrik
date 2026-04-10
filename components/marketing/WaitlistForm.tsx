@@ -39,31 +39,33 @@ export function WaitlistForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-3 sm:flex-row sm:gap-2">
-      <Input
-        type="text"
-        placeholder="Nome da sua agência (opcional)"
-        value={agencyName}
-        onChange={(e) => setAgencyName(e.target.value)}
-        className="h-12 border-slate-700 bg-slate-800 text-white placeholder:text-slate-500 focus-visible:ring-violet-500 sm:w-48"
-      />
-      <Input
-        type="email"
-        placeholder="seu@email.com"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        required
-        className="h-12 flex-1 border-slate-700 bg-slate-800 text-white placeholder:text-slate-500 focus-visible:ring-violet-500"
-      />
-      <Button
-        type="submit"
-        disabled={status === 'loading'}
-        className="h-12 bg-gradient-to-r from-violet-600 to-indigo-600 px-6 font-semibold text-white hover:from-violet-700 hover:to-indigo-700 disabled:opacity-70"
-      >
-        {status === 'loading' ? 'Salvando...' : 'Quero entrar na lista'}
-      </Button>
+    <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:gap-2">
+        <Input
+          type="text"
+          placeholder="Nome da sua agência (opcional)"
+          value={agencyName}
+          onChange={(e) => setAgencyName(e.target.value)}
+          className="h-12 border-slate-700 bg-slate-800 text-white placeholder:text-slate-500 focus-visible:ring-violet-500 sm:w-48"
+        />
+        <Input
+          type="email"
+          placeholder="seu@email.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          className="h-12 flex-1 border-slate-700 bg-slate-800 text-white placeholder:text-slate-500 focus-visible:ring-violet-500"
+        />
+        <Button
+          type="submit"
+          disabled={status === 'loading'}
+          className="h-12 bg-gradient-to-r from-violet-600 to-indigo-600 px-6 font-semibold text-white hover:from-violet-700 hover:to-indigo-700 disabled:opacity-70"
+        >
+          {status === 'loading' ? 'Salvando...' : 'Quero entrar na lista'}
+        </Button>
+      </div>
       {status === 'error' && (
-        <p className="w-full text-center text-sm text-red-400 sm:text-left">{message}</p>
+        <p className="text-sm text-red-400">{message}</p>
       )}
     </form>
   )
