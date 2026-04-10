@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 
 export function Navbar() {
@@ -23,13 +24,21 @@ export function Navbar() {
           </a>
         </nav>
 
-        <Button
-          asChild
-          size="sm"
-          className="bg-gradient-to-r from-violet-600 to-indigo-600 text-white hover:from-violet-700 hover:to-indigo-700"
-        >
-          <a href="#waitlist">Entrar na lista</a>
-        </Button>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/login"
+            className="text-sm text-slate-400 transition-colors hover:text-white"
+          >
+            Entrar
+          </Link>
+          <Button
+            asChild
+            size="sm"
+            className="bg-gradient-to-r from-violet-600 to-indigo-600 text-white hover:from-violet-700 hover:to-indigo-700"
+          >
+            <Link href="/cadastro">Criar conta grátis</Link>
+          </Button>
+        </div>
       </div>
     </header>
   )

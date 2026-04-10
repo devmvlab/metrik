@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { Separator } from '@/components/ui/separator'
 
 export function Footer() {
@@ -19,12 +20,12 @@ export function Footer() {
           </p>
 
           <div className="flex items-center gap-6 text-sm text-slate-500">
-            <a href="#" className="transition-colors hover:text-slate-300">
-              Privacidade
-            </a>
-            <a href="#" className="transition-colors hover:text-slate-300">
-              Termos
-            </a>
+            <Link href="/login" className="transition-colors hover:text-slate-300">
+              Entrar
+            </Link>
+            <Link href="/cadastro" className="transition-colors hover:text-slate-300">
+              Criar conta
+            </Link>
             <a href="mailto:contato@metrik.com.br" className="transition-colors hover:text-slate-300">
               Contato
             </a>

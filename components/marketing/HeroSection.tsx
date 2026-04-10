@@ -1,12 +1,10 @@
+import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
-import { WaitlistForm } from './WaitlistForm'
+import { Button } from '@/components/ui/button'
 
 export function HeroSection() {
   return (
-    <section
-      id="waitlist"
-      className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 pt-24 pb-20 text-center"
-    >
+    <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 pt-24 pb-20 text-center">
       {/* Background glow */}
       <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
         <div className="h-[600px] w-[600px] rounded-full bg-violet-600/10 blur-3xl" />
@@ -17,7 +15,7 @@ export function HeroSection() {
           variant="outline"
           className="mb-6 border-violet-500/40 bg-violet-500/10 text-violet-300"
         >
-          Lista de espera aberta
+          7 dias grátis · Sem cartão de crédito
         </Badge>
 
         <h1 className="mb-6 text-5xl font-extrabold leading-tight tracking-tight text-white md:text-6xl lg:text-7xl">
@@ -33,12 +31,30 @@ export function HeroSection() {
           em tempo real — sem uma linha de código, sem relatórios manuais.
         </p>
 
-        <div className="mx-auto max-w-2xl">
-          <WaitlistForm />
-          <p className="mt-3 text-xs text-slate-500">
-            Sem spam. Só avisamos quando abrirmos o beta.
-          </p>
+        <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
+          <Button
+            asChild
+            size="lg"
+            className="h-12 px-8 bg-gradient-to-r from-violet-600 to-indigo-600 text-white hover:from-violet-700 hover:to-indigo-700 font-semibold"
+          >
+            <Link href="/cadastro">Criar conta grátis</Link>
+          </Button>
+          <Button
+            asChild
+            size="lg"
+            variant="outline"
+            className="h-12 px-8 border-slate-700 bg-transparent text-slate-300 hover:bg-slate-800 hover:text-white"
+          >
+            <a href="#features">Ver como funciona</a>
+          </Button>
         </div>
+
+        <p className="mt-4 text-xs text-slate-500">
+          Já tem conta?{' '}
+          <Link href="/login" className="text-slate-400 underline underline-offset-2 hover:text-white transition-colors">
+            Entrar
+          </Link>
+        </p>
 
         <div className="mt-16 flex flex-wrap items-center justify-center gap-8 text-sm text-slate-500">
           <div className="flex items-center gap-2">

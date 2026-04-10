@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -113,7 +114,7 @@ export function PricingSection() {
                 }`}
                 variant={plan.highlight ? 'default' : 'outline'}
               >
-                <a href="#waitlist">Entrar na lista de espera</a>
+                <Link href="/cadastro">Começar grátis</Link>
               </Button>
             </div>
           ))}
