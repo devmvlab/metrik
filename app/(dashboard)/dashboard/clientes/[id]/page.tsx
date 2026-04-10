@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
+import type { Integration } from '@prisma/client'
 import { requireAgencyAdmin } from '@/lib/auth/session'
 import { getClientById } from '@/lib/db/clients'
 import { Card } from '@/components/ui/card'
@@ -30,7 +31,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
 
   if (!client) notFound()
 
-  const connectedPlatforms = new Map(client.integrations.map((i) => [i.platform, i]))
+  const connectedPlatforms = new Map(client.integrations.map((i: Integration) => [i.platform, i]))
 
   return (
     <div>
