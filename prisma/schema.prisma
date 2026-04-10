@@ -10,6 +10,144 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum Plan {
+  STARTER
+  PRO
+  AGENCY
+}
+
+enum Role {
+  AGENCY_ADMIN
+  CLIENT_VIEWER
+}
+
+enum ClientStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum Platform {
+  META_ADS
+  GOOGLE_ADS
+  GA4
+}
+
+enum IntegrationStatus {
+  CONNECTED
+  EXPIRED
+  ERROR
+}
+
+// ---------------------------------------------------------------------------
+// Agency — cada agência é um tenant isolado
+// ---------------------------------------------------------------------------
+
+model Agency {
+  id               String    @id @default(cuid())
+  name             String
+  slug             String    @unique
+  plan             Plan      @default(STARTER)
+  stripeCustomerId String?   @map("stripe_customer_id")
+  trialEndsAt      DateTime? @map("trial_ends_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+
+  whiteLabelConfig WhiteLabelConfig?
+  users            User[]
+  clients          Client[]
+
+  @@map("agencies")
+}
+
+// ---------------------------------------------------------------------------
+// WhiteLabelConfig — 1:1 com Agency
+// ---------------------------------------------------------------------------
+
+model WhiteLabelConfig {
+  id             String  @id @default(cuid())
+  agencyId       String  @unique @map("agency_id")
+  logoUrl        String? @map("logo_url")
+  primaryColor   String? @map("primary_color")
+  secondaryColor String? @map("secondary_color")
+  customDomain   String? @map("custom_domain")
+
+  agency Agency @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+
+  @@map("white_label_configs")
+}
+
+// ---------------------------------------------------------------------------
+// User — agency_admin ou client_viewer
+// O id é o UUID do Supabase Auth (auth.users.id)
+// ---------------------------------------------------------------------------
+
+model User {
+  id        String   @id // UUID do Supabase Auth — sem default, definido no cadastro
+  email     String   @unique
+  name      String
+  role      Role
+  agencyId  String   @map("agency_id")
+  clientId  String?  @map("client_id") // só para CLIENT_VIEWER
+  createdAt DateTime @default(now()) @map("created_at")
+
+  agency Agency  @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  client Client? @relation(fields: [clientId], references: [id])
+
+  @@index([agencyId])
+  @@index([clientId])
+  @@map("users")
+}
+
+// ---------------------------------------------------------------------------
+// Client — cliente da agência
+// ---------------------------------------------------------------------------
+
+model Client {
+  id        String       @id @default(cuid())
+  name      String
+  email     String
+  agencyId  String       @map("agency_id")
+  status    ClientStatus @default(ACTIVE)
+  createdAt DateTime     @default(now()) @map("created_at")
+
+  agency       Agency        @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  integrations Integration[]
+  users        User[]
+
+  @@index([agencyId])
+  @@map("clients")
+}
+
+// ---------------------------------------------------------------------------
+// Integration — conexão OAuth de um cliente com uma plataforma
+// access_token e refresh_token são armazenados SEMPRE encriptados (AES-256-GCM)
+// ---------------------------------------------------------------------------
+
+model Integration {
+  id           String            @id @default(cuid())
+  clientId     String            @map("client_id")
+  platform     Platform
+  accessToken  String            @map("access_token") // encrypted
+  refreshToken String?           @map("refresh_token") // encrypted
+  accountId    String            @map("account_id")
+  status       IntegrationStatus @default(CONNECTED)
+  lastSyncAt   DateTime?         @map("last_sync_at")
+  createdAt    DateTime          @default(now()) @map("created_at")
+
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@unique([clientId, platform]) // um cliente só pode ter uma conexão por plataforma
+  @@index([clientId])
+  @@map("integrations")
+}
+
+// ---------------------------------------------------------------------------
+// Waitlist — captura de emails da landing page (já existia)
+// ---------------------------------------------------------------------------
+
 model Waitlist {
   id         String   @id @default(cuid())
   email      String   @unique
