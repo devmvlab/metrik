@@ -6,7 +6,7 @@ import { getClientById } from '@/lib/db/clients'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, ExternalLink, CheckCircle2, AlertCircle, Clock } from 'lucide-react'
+import { ArrowLeft, ExternalLink, CheckCircle2, AlertCircle, Clock, RefreshCw, Plus } from 'lucide-react'
 
 const platformLabels: Record<string, string> = {
   META_ADS: 'Meta Ads',
@@ -14,24 +14,73 @@ const platformLabels: Record<string, string> = {
   GA4: 'Google Analytics 4',
 }
 
-const statusConfig: Record<
-  string,
-  { label: string; icon: typeof CheckCircle2; color: string }
-> = {
-  CONNECTED: { label: 'Conectado', icon: CheckCircle2, color: 'text-green-600' },
-  EXPIRED: { label: 'Expirado', icon: Clock, color: 'text-amber-600' },
-  ERROR: { label: 'Erro', icon: AlertCircle, color: 'text-red-600' },
+const connectPaths: Record<string, string> = {
+  META_ADS: '/api/integrations/meta/connect',
+  GOOGLE_ADS: '/api/integrations/google-ads/connect',
+  GA4: '/api/integrations/ga4/connect',
 }
 
 const allPlatforms = ['META_ADS', 'GOOGLE_ADS', 'GA4'] as const
 
-export default async function ClientDetailPage({ params }: { params: { id: string } }) {
+function formatDate(date: Date | null | undefined): string {
+  if (!date) return '—'
+  return new Intl.DateTimeFormat('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(date))
+}
+
+function IntegrationStatusBadge({ integration }: { integration: Integration }) {
+  if (integration.status === 'CONNECTED') {
+    return (
+      <div className="flex items-center gap-1.5">
+        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+        <span className="text-xs font-medium text-emerald-700">Conectado</span>
+      </div>
+    )
+  }
+  if (integration.status === 'EXPIRED') {
+    return (
+      <div className="flex items-center gap-1.5">
+        <Clock className="w-3.5 h-3.5 text-amber-600" />
+        <span className="text-xs font-medium text-amber-700">Token expirado</span>
+      </div>
+    )
+  }
+  return (
+    <div className="flex items-center gap-1.5">
+      <AlertCircle className="w-3.5 h-3.5 text-red-500" />
+      <span className="text-xs font-medium text-red-600">Erro</span>
+    </div>
+  )
+}
+
+export default async function ClientDetailPage({
+  params,
+  searchParams,
+}: {
+  params: { id: string }
+  searchParams: { integration?: string; status?: string; reason?: string }
+}) {
   const session = await requireAgencyAdmin()
   const client = await getClientById(params.id, session.agencyId)
 
   if (!client) notFound()
 
   const connectedPlatforms = new Map(client.integrations.map((i: Integration) => [i.platform, i]))
+
+  // Toast de feedback do callback OAuth (lido via query params)
+  const callbackFeedback =
+    searchParams.status === 'success'
+      ? { type: 'success' as const, message: `${platformLabels[searchParams.integration?.toUpperCase().replace('-', '_') ?? ''] ?? 'Integração'} conectada com sucesso.` }
+      : searchParams.status === 'error'
+      ? { type: 'error' as const, message: searchParams.reason ?? 'Erro ao conectar integração.' }
+      : searchParams.status === 'denied'
+      ? { type: 'warning' as const, message: 'Autorização negada pelo usuário.' }
+      : null
 
   return (
     <div>
@@ -54,37 +103,88 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
         </div>
       </div>
 
+      {/* Feedback de callback OAuth */}
+      {callbackFeedback && (
+        <div
+          className={`mb-6 rounded-lg border px-4 py-3 text-sm ${
+            callbackFeedback.type === 'success'
+              ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
+              : callbackFeedback.type === 'error'
+              ? 'border-red-200 bg-red-50 text-red-800'
+              : 'border-amber-200 bg-amber-50 text-amber-800'
+          }`}
+        >
+          {callbackFeedback.message}
+        </div>
+      )}
+
       {/* Cards de integração */}
       <div className="mb-8">
         <h2 className="text-sm font-semibold text-neutral-900 mb-3">Integrações</h2>
         <div className="grid grid-cols-3 gap-4">
           {allPlatforms.map((platform) => {
             const integration = connectedPlatforms.get(platform)
-            const status = integration ? statusConfig[integration.status] : null
+            const connectUrl = `${connectPaths[platform]}?client_id=${client.id}`
 
             return (
               <Card key={platform} className="p-4 border border-neutral-200 shadow-sm">
                 <div className="flex items-start justify-between mb-3">
-                  <p className="text-sm font-medium text-neutral-900">
-                    {platformLabels[platform]}
-                  </p>
-                  {status ? (
-                    <status.icon className={`w-4 h-4 ${status.color}`} />
+                  <p className="text-sm font-medium text-neutral-900">{platformLabels[platform]}</p>
+                  {integration ? (
+                    <IntegrationStatusBadge integration={integration} />
                   ) : (
                     <div className="w-2 h-2 rounded-full bg-neutral-200 mt-1" />
                   )}
                 </div>
+
                 {integration ? (
                   <>
-                    <p className={`text-xs font-medium ${statusConfig[integration.status].color}`}>
-                      {statusConfig[integration.status].label}
-                    </p>
                     {integration.accountId && (
-                      <p className="text-xs text-neutral-400 mt-0.5">ID: {integration.accountId}</p>
+                      <p className="text-xs text-neutral-400 mb-1">ID: {integration.accountId}</p>
+                    )}
+                    <p className="text-xs text-neutral-400 mb-3">
+                      Última sync: {formatDate(integration.lastSyncAt)}
+                    </p>
+
+                    {integration.status === 'CONNECTED' ? (
+                      <Link href={connectUrl}>
+                        <Button variant="outline" size="sm" className="w-full gap-1.5 text-xs">
+                          <RefreshCw className="w-3 h-3" />
+                          Reconectar
+                        </Button>
+                      </Link>
+                    ) : integration.status === 'EXPIRED' ? (
+                      <Link href={connectUrl}>
+                        <Button
+                          size="sm"
+                          className="w-full gap-1.5 text-xs bg-amber-500 hover:bg-amber-600 text-white"
+                        >
+                          <RefreshCw className="w-3 h-3" />
+                          Reconectar
+                        </Button>
+                      </Link>
+                    ) : (
+                      <Link href={connectUrl}>
+                        <Button
+                          size="sm"
+                          className="w-full gap-1.5 text-xs bg-red-500 hover:bg-red-600 text-white"
+                        >
+                          <RefreshCw className="w-3 h-3" />
+                          Tentar novamente
+                        </Button>
+                      </Link>
                     )}
                   </>
                 ) : (
-                  <p className="text-xs text-neutral-400">Não conectado</p>
+                  <>
+                    <p className="text-xs text-neutral-400 mb-3">Não conectado</p>
+                    <Link href={connectUrl}>
+                      <Button size="sm" className="w-full gap-1.5 text-xs">
+                        <Plus className="w-3 h-3" />
+                        Conectar
+                      </Button>
+                    </Link>
+                  </>
                 )}
               </Card>
             )
