@@ -137,11 +137,33 @@ model Integration {
   lastSyncAt   DateTime?         @map("last_sync_at")
   createdAt    DateTime          @default(now()) @map("created_at")
 
-  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  client     Client                @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  dataCache  IntegrationDataCache[]
 
   @@unique([clientId, platform]) // um cliente só pode ter uma conexão por plataforma
   @@index([clientId])
   @@map("integrations")
+}
+
+// ---------------------------------------------------------------------------
+// IntegrationDataCache — cache de 4h dos dados buscados nas APIs externas
+// Toda busca verifica expires_at antes de chamar a API
+// ---------------------------------------------------------------------------
+
+model IntegrationDataCache {
+  id            String      @id @default(cuid())
+  integrationId String      @map("integration_id")
+  data          Json
+  periodStart   DateTime    @map("period_start")
+  periodEnd     DateTime    @map("period_end")
+  cachedAt      DateTime    @default(now()) @map("cached_at")
+  expiresAt     DateTime    @map("expires_at")
+
+  integration Integration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+
+  @@index([integrationId])
+  @@index([expiresAt])
+  @@map("integration_data_cache")
 }
 
 // ---------------------------------------------------------------------------
