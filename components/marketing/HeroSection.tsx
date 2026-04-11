@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { MetrikLogo } from '@/components/marketing/MetrikLogo'
 
 export function HeroSection() {
   return (
@@ -11,6 +12,10 @@ export function HeroSection() {
       </div>
 
       <div className="relative z-10 mx-auto max-w-4xl">
+        <div className="mb-8 flex justify-center">
+          <MetrikLogo size="hero" glow />
+        </div>
+
         <Badge
           variant="outline"
           className="mb-6 border-violet-500/40 bg-violet-500/10 text-violet-300"

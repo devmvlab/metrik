@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { Separator } from '@/components/ui/separator'
+import { MetrikLogo } from '@/components/marketing/MetrikLogo'
 
 export function Footer() {
   return (
@@ -8,12 +9,9 @@ export function Footer() {
         <Separator className="mb-8 bg-slate-800" />
 
         <div className="flex flex-col items-center justify-between gap-6 sm:flex-row">
-          <div className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-violet-600 to-indigo-600">
-              <span className="text-xs font-bold text-white">M</span>
-            </div>
-            <span className="font-semibold text-white">Metrik</span>
-          </div>
+          <Link href="/" aria-label="Metrik — página inicial">
+            <MetrikLogo size="sm" />
+          </Link>
 
           <p className="text-sm text-slate-500">
             © {new Date().getFullYear()} Metrik. Todos os direitos reservados.
