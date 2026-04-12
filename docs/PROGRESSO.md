@@ -86,10 +86,47 @@ Registro do que foi implementado por fase. Atualizado ao final de cada fase.
 
 ---
 
-## Próximo: Fase 3 — Dashboard
+## Fase 3 — Dashboard ✅
 
-- Dashboard do cliente com cards de métricas e gráficos
-- Seletor de período
-- Visão consolidada (todas as plataformas)
-- Exportação PDF com logo da agência
-- Domínio customizado (CNAME)
+**Concluída em:** Abril 2026
+
+### O que foi entregue
+
+#### Camada de dados
+- `lib/dashboard/periods.ts` — presets de período (7d, 15d, 30d, mês atual, mês anterior) + `getDateRange()` + `parsePeriod()`
+- `lib/integrations/meta/daily.ts` — dados diários do Meta Ads (spend + conversões por dia) com cache separado
+- `lib/integrations/google-ads/daily.ts` — dados diários do Google Ads com cache separado
+- `lib/integrations/ga4/daily.ts` — dados diários do GA4 (sessions por dia) com cache separado
+- `lib/dashboard/aggregator.ts` — `getDashboardData()`: agrega campanhas + série diária + breakdown por plataforma
+- `prisma/schema.prisma` — campo `dataType` adicionado ao `IntegrationDataCache` para separar `campaigns` de `daily`
+
+#### UI do cliente
+- `app/(client)/layout.tsx` — layout white-label: logo + cor primária da agência via CSS variable
+- `app/(client)/dashboard/page.tsx` — Server Component: 8 cards de métricas, 2 gráficos, tabela de campanhas
+- `components/dashboard/MetricCard.tsx` — card de métrica com ícone
+- `components/dashboard/PeriodSelector.tsx` — seletor de período via URL search params
+- `components/dashboard/CampaignTable.tsx` — tabela de campanhas com badge de plataforma e ROAS colorido
+- `components/dashboard/PrintButton.tsx` — botão "Exportar PDF" via `window.print()`
+- `components/charts/InvestmentLineChart.tsx` — gráfico de linha: investimento vs. conversões por dia (Recharts)
+- `components/charts/PlatformBarChart.tsx` — gráfico de barras: investimento vs. conversões por plataforma (Recharts)
+
+#### API
+- `app/api/dashboard/data/route.ts` — `GET /api/dashboard/data?clientId=...&period=30d` — para o admin visualizar dashboard de qualquer cliente
+
+#### Exportação PDF
+- CSS `@media print` em `globals.css` — A4 landscape, cores exatas, sem sombras, quebras de página controladas
+
+### Decisão arquitetural tomada
+- Rota do cliente: `/client/dashboard` (sem slug na URL — tenant resolvido pelo JWT)
+- Custom domain será adicionado no middleware como overlay futuro (zero mudança de rota)
+
+### Variáveis de ambiente corrigidas nesta fase
+| Variável | Status |
+|---|---|
+| `ENCRYPTION_KEY` | ✅ Configurada (estava vazia — causava erro ao conectar integrações) |
+
+### Próximo: Fase 4 — Monetização
+- Stripe + planos (Starter/Pro/Agency)
+- Trial de 7 dias
+- Emails transacionais (boas-vindas, trial expirando, pagamento)
+- Tela de billing + upgrade
