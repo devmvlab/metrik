@@ -37,7 +37,7 @@ export async function getGoogleAdsMetrics(
   })
 
   if (cached) {
-    return cached.data as GoogleAdsCampaignMetrics[]
+    return cached.data as unknown as GoogleAdsCampaignMetrics[]
   }
 
   // 2. Cache expirado — buscar na API
@@ -105,11 +105,12 @@ export async function getGoogleAdsMetrics(
   // 3. Salvar no cache
   const expiresAt = new Date(Date.now() + CACHE_TTL_MS)
   await db.integrationDataCache.deleteMany({
-    where: { integrationId, periodStart, periodEnd },
+    where: { integrationId, dataType: 'campaigns', periodStart, periodEnd },
   })
   await db.integrationDataCache.create({
     data: {
       integrationId,
+      dataType: 'campaigns',
       data: metrics as object[],
       periodStart,
       periodEnd,

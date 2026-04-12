@@ -2,32 +2,31 @@ import { analyticsdata } from '@googleapis/analyticsdata'
 import { google } from 'googleapis'
 import { db } from '@/lib/db'
 import { decrypt } from '@/lib/utils/crypto'
+import { formatApiDate } from '@/lib/dashboard/periods'
 
-const CACHE_TTL_MS = 4 * 60 * 60 * 1000 // 4 horas
+const CACHE_TTL_MS = 4 * 60 * 60 * 1000
 
-export interface GA4Metrics {
-  source: string
+export interface GA4DailyData {
+  date: string      // YYYY-MM-DD
   sessions: number
   users: number
-  newUsers: number
   conversions: number
-  totalRevenue: number
-  bounceRate: number
 }
 
 /**
- * Busca métricas do GA4 agrupadas por sessionSource.
- * Verifica o cache primeiro — só chama a API se expirado.
+ * Busca dados diários do GA4 para o período informado.
+ * Dimensão: date — um ponto por dia.
  */
-export async function getGA4Metrics(
+export async function getGA4DailyData(
   integrationId: string,
   periodStart: Date,
   periodEnd: Date
-): Promise<GA4Metrics[]> {
-  // 1. Verificar cache válido
+): Promise<GA4DailyData[]> {
+  // 1. Verificar cache
   const cached = await db.integrationDataCache.findFirst({
     where: {
       integrationId,
+      dataType: 'daily',
       periodStart,
       periodEnd,
       expiresAt: { gt: new Date() },
@@ -35,17 +34,15 @@ export async function getGA4Metrics(
   })
 
   if (cached) {
-    return cached.data as unknown as GA4Metrics[]
+    return cached.data as unknown as GA4DailyData[]
   }
 
-  // 2. Cache expirado — buscar na API
+  // 2. Buscar na API
   const integration = await db.integration.findUnique({ where: { id: integrationId } })
-  if (!integration) throw new Error('Integração não encontrada')
-  if (integration.status !== 'CONNECTED') throw new Error('Integração não está conectada')
+  if (!integration || integration.status !== 'CONNECTED') return []
 
   const refreshToken = integration.refreshToken ? decrypt(integration.refreshToken) : ''
 
-  // Criar cliente OAuth2 com refresh_token para renovar access_token automaticamente
   const oauth2Client = new google.auth.OAuth2(
     process.env.GOOGLE_CLIENT_ID!,
     process.env.GOOGLE_CLIENT_SECRET!
@@ -59,68 +56,53 @@ export async function getGA4Metrics(
     requestBody: {
       dateRanges: [
         {
-          startDate: formatDate(periodStart),
-          endDate: formatDate(periodEnd),
+          startDate: formatApiDate(periodStart),
+          endDate: formatApiDate(periodEnd),
         },
       ],
-      dimensions: [{ name: 'sessionSource' }],
+      dimensions: [{ name: 'date' }],
       metrics: [
         { name: 'sessions' },
         { name: 'totalUsers' },
-        { name: 'newUsers' },
         { name: 'conversions' },
-        { name: 'totalRevenue' },
-        { name: 'bounceRate' },
       ],
-      orderBys: [{ metric: { metricName: 'sessions' }, desc: true }],
-      limit: '50',
+      orderBys: [{ dimension: { dimensionName: 'date' }, desc: false }],
     },
   })
 
   const rows = (response as { data: { rows?: unknown[] } }).data?.rows ?? []
-  const metrics: GA4Metrics[] = (rows as Array<Record<string, unknown>>).map((row) => {
+  const data: GA4DailyData[] = (rows as Array<Record<string, unknown>>).map((row) => {
     const dims = (row.dimensionValues as Array<{ value?: string }> | undefined) ?? []
     const vals = (row.metricValues as Array<{ value?: string }> | undefined) ?? []
+    // GA4 retorna date como YYYYMMDD — converter para YYYY-MM-DD
+    const raw = dims[0]?.value ?? ''
+    const date = raw.length === 8
+      ? `${raw.slice(0, 4)}-${raw.slice(4, 6)}-${raw.slice(6, 8)}`
+      : raw
 
     return {
-      source: dims[0]?.value ?? '(direct)',
+      date,
       sessions: parseInt(vals[0]?.value ?? '0', 10),
       users: parseInt(vals[1]?.value ?? '0', 10),
-      newUsers: parseInt(vals[2]?.value ?? '0', 10),
-      conversions: parseInt(vals[3]?.value ?? '0', 10),
-      totalRevenue: parseFloat(vals[4]?.value ?? '0'),
-      bounceRate: parseFloat(vals[5]?.value ?? '0'),
+      conversions: parseInt(vals[2]?.value ?? '0', 10),
     }
   })
 
   // 3. Salvar no cache
   const expiresAt = new Date(Date.now() + CACHE_TTL_MS)
   await db.integrationDataCache.deleteMany({
-    where: { integrationId, dataType: 'campaigns', periodStart, periodEnd },
+    where: { integrationId, dataType: 'daily', periodStart, periodEnd },
   })
   await db.integrationDataCache.create({
     data: {
       integrationId,
-      dataType: 'campaigns',
-      data: metrics as object[],
+      dataType: 'daily',
+      data: data as object[],
       periodStart,
       periodEnd,
       expiresAt,
     },
   })
 
-  await db.integration.update({
-    where: { id: integrationId },
-    data: { lastSyncAt: new Date() },
-  })
-
-  return metrics
-}
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-function formatDate(date: Date): string {
-  return date.toISOString().split('T')[0]
+  return data
 }

@@ -30,6 +30,7 @@ export async function getMetaMetrics(
   const cached = await db.integrationDataCache.findFirst({
     where: {
       integrationId,
+      dataType: 'campaigns',
       periodStart,
       periodEnd,
       expiresAt: { gt: new Date() },
@@ -37,7 +38,7 @@ export async function getMetaMetrics(
   })
 
   if (cached) {
-    return cached.data as MetaCampaignMetrics[]
+    return cached.data as unknown as MetaCampaignMetrics[]
   }
 
   // 2. Cache expirado ou inexistente — buscar na API
@@ -84,11 +85,12 @@ export async function getMetaMetrics(
   // 3. Salvar no cache — remove entradas antigas do mesmo período e recria
   const expiresAt = new Date(Date.now() + CACHE_TTL_MS)
   await db.integrationDataCache.deleteMany({
-    where: { integrationId, periodStart, periodEnd },
+    where: { integrationId, dataType: 'campaigns', periodStart, periodEnd },
   })
   await db.integrationDataCache.create({
     data: {
       integrationId,
+      dataType: 'campaigns',
       data: metrics as object[],
       periodStart,
       periodEnd,
