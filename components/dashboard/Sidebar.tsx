@@ -1,8 +1,9 @@
 import Link from 'next/link'
-import { LayoutDashboard, Users, BarChart3 } from 'lucide-react'
+import { LayoutDashboard, Users } from 'lucide-react'
 import { getSession } from '@/lib/auth/session'
 import { getAgencyById } from '@/lib/db/agencies'
 import { Badge } from '@/components/ui/badge'
+import { MetrikLogo } from '@/components/marketing/MetrikLogo'
 
 const navItems = [
   { href: '/dashboard', label: 'Visão geral', icon: LayoutDashboard },
@@ -23,9 +24,8 @@ export default async function Sidebar() {
     <aside className="w-56 shrink-0 flex flex-col h-full border-r border-neutral-200 bg-white">
       {/* Logo */}
       <div className="px-4 py-5 border-b border-neutral-200">
-        <Link href="/dashboard" className="flex items-center gap-2">
-          <BarChart3 className="w-5 h-5 text-neutral-900" />
-          <span className="font-semibold text-neutral-900 text-sm">Metrik</span>
+        <Link href="/dashboard">
+          <MetrikLogo size="sm" textClassName="text-neutral-900" />
         </Link>
       </div>
 

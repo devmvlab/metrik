@@ -11,9 +11,11 @@ interface MetrikLogoProps {
   size?: Size
   glow?: boolean
   className?: string
+  /** Classe de cor do texto. Padrão: "text-white" (para fundos escuros). */
+  textClassName?: string
 }
 
-export function MetrikLogo({ size = "md", glow = false, className = "" }: MetrikLogoProps) {
+export function MetrikLogo({ size = "md", glow = false, className = "", textClassName = "text-white" }: MetrikLogoProps) {
   const { icon, text, gap } = sizeMap[size]
   const id = `metrik-grad-${size}`
 
@@ -65,7 +67,7 @@ export function MetrikLogo({ size = "md", glow = false, className = "" }: Metrik
         </svg>
       </div>
 
-      <span className={`${text} text-white tracking-tight`}>
+      <span className={`${text} ${textClassName} tracking-tight`}>
         Metrik
       </span>
     </div>
