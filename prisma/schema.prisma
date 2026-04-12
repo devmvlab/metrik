@@ -153,6 +153,7 @@ model Integration {
 model IntegrationDataCache {
   id            String      @id @default(cuid())
   integrationId String      @map("integration_id")
+  dataType      String      @default("campaigns") @map("data_type") // "campaigns" | "daily"
   data          Json
   periodStart   DateTime    @map("period_start")
   periodEnd     DateTime    @map("period_end")
