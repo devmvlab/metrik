@@ -63,3 +63,38 @@
     text-wrap: balance;
   }
 }
+
+/* ---------------------------------------------------------------------------
+ * Estilos de impressão — Exportação PDF via window.print()
+ * As classes .print:hidden e .print:* do Tailwind complementam estas regras.
+ * --------------------------------------------------------------------------- */
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 15mm 12mm;
+  }
+
+  body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    font-size: 11px;
+  }
+
+  /* Remove sombras e bordas arredondadas para impressão mais limpa */
+  .shadow-sm,
+  .shadow {
+    box-shadow: none !important;
+  }
+
+  /* Evita quebra de página dentro de cards */
+  [class*="Card"],
+  table,
+  tr {
+    break-inside: avoid;
+  }
+
+  /* Gráficos: mantém dimensão fixa para evitar overflow */
+  .recharts-wrapper {
+    page-break-inside: avoid;
+  }
+}
