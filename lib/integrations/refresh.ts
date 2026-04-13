@@ -7,11 +7,12 @@ const META_TOKEN_URL = 'https://graph.facebook.com/v19.0/oauth/access_token'
 /**
  * Renova o access_token do Meta Ads via long-lived token exchange.
  * Meta não usa refresh_token — em vez disso, troca o token atual por um novo.
- * Se falhar, marca a integração como EXPIRED.
+ * Se falhar, marca a integração como EXPIRED e retorna false.
+ * Retorna true em caso de sucesso.
  */
-export async function refreshMetaToken(integrationId: string): Promise<void> {
+export async function refreshMetaToken(integrationId: string): Promise<boolean> {
   const integration = await db.integration.findUnique({ where: { id: integrationId } })
-  if (!integration) return
+  if (!integration) return false
 
   try {
     const currentToken = decrypt(integration.accessToken)
@@ -41,22 +42,26 @@ export async function refreshMetaToken(integrationId: string): Promise<void> {
         lastSyncAt: new Date(),
       },
     })
+
+    return true
   } catch (err) {
     console.error(`[refresh] Meta integrationId=${integrationId}:`, err)
     await db.integration.update({
       where: { id: integrationId },
       data: { status: 'EXPIRED' },
     })
+    return false
   }
 }
 
 /**
  * Renova o access_token do Google (Google Ads e GA4 compartilham o mesmo refresh_token).
- * Se falhar, marca a integração como EXPIRED.
+ * Se falhar, marca a integração como EXPIRED e retorna false.
+ * Retorna true em caso de sucesso.
  */
-export async function refreshGoogleToken(integrationId: string): Promise<void> {
+export async function refreshGoogleToken(integrationId: string): Promise<boolean> {
   const integration = await db.integration.findUnique({ where: { id: integrationId } })
-  if (!integration || !integration.refreshToken) return
+  if (!integration || !integration.refreshToken) return false
 
   try {
     const refreshToken = decrypt(integration.refreshToken)
@@ -90,11 +95,14 @@ export async function refreshGoogleToken(integrationId: string): Promise<void> {
         lastSyncAt: new Date(),
       },
     })
+
+    return true
   } catch (err) {
     console.error(`[refresh] Google integrationId=${integrationId}:`, err)
     await db.integration.update({
       where: { id: integrationId },
       data: { status: 'EXPIRED' },
     })
+    return false
   }
 }

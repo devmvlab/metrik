@@ -6,6 +6,7 @@ import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { db } from '@/lib/db'
+import { sendWelcomeEmail } from '@/lib/email'
 
 // ---------------------------------------------------------------------------
 // Schemas de validação
@@ -187,6 +188,14 @@ export async function signUp(_prevState: ActionResult, formData: FormData): Prom
     redirect('/login?msg=conta-criada')
   }
 
+  // 5. Envia email de boas-vindas (fire-and-forget — não bloqueia o redirect)
+  void sendWelcomeEmail({
+    to: email,
+    name,
+    agencyName: parse.data.agencyName,
+    trialEndsAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+  })
+
   redirect('/dashboard')
 }
 
@@ -333,6 +342,14 @@ export async function completeGoogleSignup(
     }
     return { error: 'Erro ao configurar agência. Tente novamente.' }
   }
+
+  // Envia email de boas-vindas (fire-and-forget)
+  void sendWelcomeEmail({
+    to: user.email!,
+    name: user.user_metadata?.full_name ?? user.email!,
+    agencyName,
+    trialEndsAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+  })
 
   redirect('/dashboard')
 }

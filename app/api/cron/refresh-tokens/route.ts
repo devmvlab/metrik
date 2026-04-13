@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { refreshMetaToken, refreshGoogleToken } from '@/lib/integrations/refresh'
+import { sendIntegrationExpiredEmail } from '@/lib/email'
 
 /**
  * Rota de cron chamada pelo Vercel a cada 6 horas.
@@ -37,24 +38,51 @@ export async function GET(request: NextRequest) {
     select: { id: true, platform: true },
   })
 
-  const results = { refreshed: 0, failed: 0, skipped: 0 }
+  const results = { refreshed: 0, failed: 0 }
 
   await Promise.allSettled(
     integrations.map(async (integration) => {
-      try {
-        if (integration.platform === 'META_ADS') {
-          await refreshMetaToken(integration.id)
-        } else {
-          await refreshGoogleToken(integration.id)
-        }
-        results.refreshed++
-      } catch {
-        results.failed++
-      }
-    })
-  )
+      const success =
+        integration.platform === 'META_ADS'
+          ? await refreshMetaToken(integration.id)
+          : await refreshGoogleToken(integration.id)
 
-  results.skipped = 0 // todos foram tentados
+      if (success) {
+        results.refreshed++
+        return
+      }
+
+      results.failed++
+
+      // Notifica o admin da agência sobre a integração expirada
+      const integrationWithRelations = await db.integration.findUnique({
+        where: { id: integration.id },
+        include: {
+          client: {
+            include: {
+              agency: {
+                include: {
+                  users: { where: { role: 'AGENCY_ADMIN' }, take: 1 },
+                },
+              },
+            },
+          },
+        },
+      })
+
+      const admin = integrationWithRelations?.client.agency.users[0]
+      if (admin?.email) {
+        void sendIntegrationExpiredEmail({
+          to: admin.email,
+          name: admin.name,
+          agencyName: integrationWithRelations!.client.agency.name,
+          platform: integration.platform,
+          clientName: integrationWithRelations!.client.name,
+          clientId: integrationWithRelations!.client.id,
+        })
+      }
+    }),
+  )
 
   console.log('[cron/refresh-tokens]', results)
 
