@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { LayoutDashboard, Users, Settings } from 'lucide-react'
+import { LayoutDashboard, Users, Settings, CreditCard } from 'lucide-react'
 import { getSession } from '@/lib/auth/session'
 import { getAgencyById } from '@/lib/db/agencies'
 import { Badge } from '@/components/ui/badge'
@@ -9,6 +9,7 @@ const navItems = [
   { href: '/dashboard', label: 'Visão geral', icon: LayoutDashboard },
   { href: '/dashboard/clientes', label: 'Clientes', icon: Users },
   { href: '/dashboard/configuracoes', label: 'Configurações', icon: Settings },
+  { href: '/dashboard/billing', label: 'Plano & Billing', icon: CreditCard },
 ]
 
 const planLabels: Record<string, string> = {

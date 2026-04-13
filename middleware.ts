@@ -2,8 +2,14 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
-  // Inicializa a resposta padrão (passa a request adiante)
-  let supabaseResponse = NextResponse.next({ request })
+  const { pathname } = request.nextUrl
+
+  // Propaga o pathname para Server Components via header (lido com headers() nos layouts)
+  const requestHeaders = new Headers(request.headers)
+  requestHeaders.set('x-pathname', pathname)
+
+  // Inicializa a resposta padrão com os headers modificados
+  let supabaseResponse = NextResponse.next({ request: { headers: requestHeaders } })
 
   // Client do Supabase no middleware — lê e atualiza cookies de sessão
   const supabase = createServerClient(
@@ -17,7 +23,7 @@ export async function middleware(request: NextRequest) {
         setAll(cookiesToSet) {
           // Propaga os cookies atualizados tanto na request quanto na response
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
-          supabaseResponse = NextResponse.next({ request })
+          supabaseResponse = NextResponse.next({ request: { headers: requestHeaders } })
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options),
           )
@@ -32,7 +38,6 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  const { pathname } = request.nextUrl
   const role = user?.app_metadata?.role as string | undefined
 
   // ---------------------------------------------------------------------------

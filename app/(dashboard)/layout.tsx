@@ -1,8 +1,32 @@
+import { redirect } from 'next/navigation'
+import { headers } from 'next/headers'
 import { requireAgencyAdmin } from '@/lib/auth/session'
+import { getAgencyById } from '@/lib/db/agencies'
 import Sidebar from '@/components/dashboard/Sidebar'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  await requireAgencyAdmin()
+  const session = await requireAgencyAdmin()
+
+  // Verifica acesso — exceto na própria página de billing para evitar loop
+  const pathname = headers().get('x-pathname') ?? ''
+  if (!pathname.startsWith('/dashboard/billing')) {
+    const agency = await getAgencyById(session.agencyId)
+
+    // Tem assinatura Stripe ativa ou em trialing → acesso liberado
+    const hasActiveSubscription =
+      agency?.stripeSubscriptionStatus === 'active' ||
+      agency?.stripeSubscriptionStatus === 'trialing'
+
+    // Sem assinatura ativa: verifica se o trial ainda é válido
+    const trialExpired =
+      !hasActiveSubscription &&
+      agency?.trialEndsAt != null &&
+      new Date(agency.trialEndsAt) < new Date()
+
+    if (trialExpired) {
+      redirect('/dashboard/billing')
+    }
+  }
 
   return (
     <div className="flex h-screen overflow-hidden bg-neutral-50">

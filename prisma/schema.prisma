@@ -48,13 +48,15 @@ enum IntegrationStatus {
 // ---------------------------------------------------------------------------
 
 model Agency {
-  id               String    @id @default(cuid())
-  name             String
-  slug             String    @unique
-  plan             Plan      @default(STARTER)
-  stripeCustomerId String?   @map("stripe_customer_id")
-  trialEndsAt      DateTime? @map("trial_ends_at")
-  createdAt        DateTime  @default(now()) @map("created_at")
+  id                       String    @id @default(cuid())
+  name                     String
+  slug                     String    @unique
+  plan                     Plan      @default(STARTER)
+  stripeCustomerId         String?   @map("stripe_customer_id")
+  stripeSubscriptionId     String?   @map("stripe_subscription_id")
+  stripeSubscriptionStatus String?   @map("stripe_subscription_status")
+  trialEndsAt              DateTime? @map("trial_ends_at")
+  createdAt                DateTime  @default(now()) @map("created_at")
 
   whiteLabelConfig WhiteLabelConfig?
   users            User[]

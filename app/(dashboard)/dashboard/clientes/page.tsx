@@ -1,5 +1,8 @@
+import Link from 'next/link'
 import { requireAgencyAdmin } from '@/lib/auth/session'
 import { getClientsByAgency } from '@/lib/db/clients'
+import { getAgencyWithPlanUsage } from '@/lib/db/agencies'
+import { PLAN_LABELS, PLAN_LIMITS, isAtPlanLimit } from '@/lib/billing/plans'
 import {
   Table,
   TableBody,
@@ -10,7 +13,6 @@ import {
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { NewClientModal } from './NewClientModal'
-import Link from 'next/link'
 import { formatDistanceToNow } from './utils'
 
 const platformLabels: Record<string, string> = {
@@ -26,16 +28,54 @@ const statusVariant: Record<string, 'default' | 'secondary' | 'outline'> = {
 
 export default async function ClientesPage() {
   const session = await requireAgencyAdmin()
-  const clients = await getClientsByAgency(session.agencyId)
+  const [clients, agency] = await Promise.all([
+    getClientsByAgency(session.agencyId),
+    getAgencyWithPlanUsage(session.agencyId),
+  ])
+
+  const plan = agency?.plan ?? 'STARTER'
+  const clientCount = agency?.clientCount ?? clients.length
+  const limit = PLAN_LIMITS[plan]
+  const atLimit = isAtPlanLimit(plan, clientCount)
+  const usagePercent = Math.min(100, Math.round((clientCount / limit) * 100))
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-xl font-semibold text-neutral-900">Clientes</h1>
-          <p className="text-sm text-neutral-500 mt-1">{clients.length} cliente(s) cadastrado(s).</p>
+          <p className="text-sm text-neutral-500 mt-1">
+            {clientCount} de {limit} clientes do plano {PLAN_LABELS[plan]}.
+          </p>
         </div>
-        <NewClientModal />
+        <NewClientModal atLimit={atLimit} planName={PLAN_LABELS[plan]} planLimit={limit} />
+      </div>
+
+      {/* Barra de uso do plano */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-1.5">
+          <span className="text-xs text-neutral-500">Uso do plano</span>
+          {atLimit ? (
+            <Link
+              href="/dashboard/billing"
+              className="text-xs font-medium text-blue-600 hover:underline"
+            >
+              Fazer upgrade →
+            </Link>
+          ) : (
+            <span className="text-xs text-neutral-400">
+              {clientCount}/{limit}
+            </span>
+          )}
+        </div>
+        <div className="h-1.5 w-full rounded-full bg-neutral-100 overflow-hidden">
+          <div
+            className={`h-full rounded-full transition-all ${
+              atLimit ? 'bg-red-500' : usagePercent >= 80 ? 'bg-amber-400' : 'bg-emerald-500'
+            }`}
+            style={{ width: `${usagePercent}%` }}
+          />
+        </div>
       </div>
 
       {clients.length === 0 ? (

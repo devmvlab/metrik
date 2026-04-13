@@ -4,6 +4,7 @@ import { requireAgencyAdmin } from '@/lib/auth/session'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { db } from '@/lib/db'
 import { sendClientInviteEmail } from '@/lib/email/invite'
+import { getPlanLimit, PLAN_LABELS, isAtPlanLimit } from '@/lib/billing/plans'
 
 const createClientSchema = z.object({
   name: z.string().min(2, 'Nome deve ter ao menos 2 caracteres'),
@@ -30,23 +31,35 @@ export async function POST(request: Request) {
   const { name, email } = parse.data
   const agencyId = session.agencyId // sempre da session, nunca do body
 
-  // 3. Verifica se já existe cliente com esse email nesta agência
-  const existing = await db.client.findFirst({ where: { email, agencyId } })
+  // 3. Verifica dados da agência, limite do plano e duplicidade em paralelo
+  const [agency, currentCount, existing] = await Promise.all([
+    db.agency.findUnique({ where: { id: agencyId }, select: { name: true, plan: true } }),
+    db.client.count({ where: { agencyId } }),
+    db.client.findFirst({ where: { email, agencyId } }),
+  ])
+
+  if (!agency) {
+    return NextResponse.json({ error: 'Agência não encontrada' }, { status: 404 })
+  }
+
+  // 3a. Verifica limite de clientes do plano
+  if (isAtPlanLimit(agency.plan, currentCount)) {
+    const limit = getPlanLimit(agency.plan)
+    return NextResponse.json(
+      {
+        error: `Limite de ${limit} clientes do plano ${PLAN_LABELS[agency.plan]} atingido. Faça upgrade para continuar.`,
+        code: 'PLAN_LIMIT_REACHED',
+      },
+      { status: 403 },
+    )
+  }
+
+  // 3b. Verifica se já existe cliente com esse email nesta agência
   if (existing) {
     return NextResponse.json(
       { error: 'Já existe um cliente com este email nesta agência' },
       { status: 409 },
     )
-  }
-
-  // 4. Busca o nome da agência para o email
-  const agency = await db.agency.findUnique({
-    where: { id: agencyId },
-    select: { name: true },
-  })
-
-  if (!agency) {
-    return NextResponse.json({ error: 'Agência não encontrada' }, { status: 404 })
   }
 
   const adminSupabase = createAdminClient()
