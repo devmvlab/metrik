@@ -214,7 +214,7 @@ export default async function ClientDetailPage({
       {/* Link para o dashboard do cliente */}
       <div>
         <Link
-          href={`/client`}
+          href={`/dashboard/clientes/${client.id}/preview`}
           target="_blank"
           className="inline-flex items-center gap-1.5 text-sm text-neutral-600 hover:text-neutral-900 underline underline-offset-2"
         >

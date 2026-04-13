@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { LayoutDashboard, Users } from 'lucide-react'
+import { LayoutDashboard, Users, Settings } from 'lucide-react'
 import { getSession } from '@/lib/auth/session'
 import { getAgencyById } from '@/lib/db/agencies'
 import { Badge } from '@/components/ui/badge'
@@ -8,6 +8,7 @@ import { MetrikLogo } from '@/components/marketing/MetrikLogo'
 const navItems = [
   { href: '/dashboard', label: 'Visão geral', icon: LayoutDashboard },
   { href: '/dashboard/clientes', label: 'Clientes', icon: Users },
+  { href: '/dashboard/configuracoes', label: 'Configurações', icon: Settings },
 ]
 
 const planLabels: Record<string, string> = {

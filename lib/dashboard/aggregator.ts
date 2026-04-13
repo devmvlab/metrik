@@ -86,15 +86,22 @@ export async function getDashboardData(
   const googleAdsIntegration = integrations.find((i) => i.platform === 'GOOGLE_ADS')
   const ga4Integration = integrations.find((i) => i.platform === 'GA4')
 
-  // Buscar dados de campanha e dados diários em paralelo
+  // Buscar dados de campanha e dados diários em paralelo.
+  // Usa allSettled para que a falha de uma plataforma não derrube as demais.
+  const safe = <T>(p: Promise<T[]>): Promise<T[]> =>
+    p.catch((err) => {
+      console.error('[aggregator] falha ao buscar dados de integração:', err?.message ?? err)
+      return []
+    })
+
   const [metaCampaigns, googleAdsCampaigns, ga4Sources, metaDaily, googleAdsDaily, ga4Daily] =
     await Promise.all([
-      metaIntegration ? getMetaMetrics(metaIntegration.id, periodStart, periodEnd) : Promise.resolve([]),
-      googleAdsIntegration ? getGoogleAdsMetrics(googleAdsIntegration.id, periodStart, periodEnd) : Promise.resolve([]),
-      ga4Integration ? getGA4Metrics(ga4Integration.id, periodStart, periodEnd) : Promise.resolve([]),
-      metaIntegration ? getMetaDailyData(metaIntegration.id, periodStart, periodEnd) : Promise.resolve([]),
-      googleAdsIntegration ? getGoogleAdsDailyData(googleAdsIntegration.id, periodStart, periodEnd) : Promise.resolve([]),
-      ga4Integration ? getGA4DailyData(ga4Integration.id, periodStart, periodEnd) : Promise.resolve([]),
+      metaIntegration ? safe(getMetaMetrics(metaIntegration.id, periodStart, periodEnd)) : Promise.resolve([]),
+      googleAdsIntegration ? safe(getGoogleAdsMetrics(googleAdsIntegration.id, periodStart, periodEnd)) : Promise.resolve([]),
+      ga4Integration ? safe(getGA4Metrics(ga4Integration.id, periodStart, periodEnd)) : Promise.resolve([]),
+      metaIntegration ? safe(getMetaDailyData(metaIntegration.id, periodStart, periodEnd)) : Promise.resolve([]),
+      googleAdsIntegration ? safe(getGoogleAdsDailyData(googleAdsIntegration.id, periodStart, periodEnd)) : Promise.resolve([]),
+      ga4Integration ? safe(getGA4DailyData(ga4Integration.id, periodStart, periodEnd)) : Promise.resolve([]),
     ])
 
   // ---------------------------------------------------------------------------
