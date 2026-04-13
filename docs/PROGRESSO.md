@@ -125,8 +125,119 @@ Registro do que foi implementado por fase. Atualizado ao final de cada fase.
 |---|---|
 | `ENCRYPTION_KEY` | ✅ Configurada (estava vazia — causava erro ao conectar integrações) |
 
-### Próximo: Fase 4 — Monetização
-- Stripe + planos (Starter/Pro/Agency)
-- Trial de 7 dias
-- Emails transacionais (boas-vindas, trial expirando, pagamento)
-- Tela de billing + upgrade
+---
+
+## Fase 4 — Monetização (em andamento)
+
+### Etapa 1 — Guardrails de plano ✅
+
+**Concluída em:** Abril 2026
+
+#### O que foi entregue
+- `lib/billing/plans.ts` — `PLAN_LIMITS`, `PLAN_LABELS`, `PLAN_PRICES`, `getPlanLimit()`, `isAtPlanLimit()`
+- `lib/db/agencies.ts` — `getAgencyWithPlanUsage()` (agency + contagem de clientes em paralelo)
+- `app/api/clients/route.ts` — verifica limite do plano antes de criar cliente (HTTP 403 + `code: PLAN_LIMIT_REACHED`)
+- `middleware.ts` — propaga `x-pathname` via header para Server Components lerem sem Prisma no Edge
+- `app/(dashboard)/layout.tsx` — verifica expiração do trial e redireciona para `/dashboard/billing`
+- `app/(dashboard)/dashboard/clientes/page.tsx` — barra de uso do plano (verde → âmbar → vermelho) com link de upgrade
+- `app/(dashboard)/dashboard/clientes/NewClientModal.tsx` — estado de limite atingido com CTA para billing
+- `components/dashboard/Sidebar.tsx` — link "Plano & Billing" na navegação
+- `app/(dashboard)/dashboard/billing/page.tsx` — página de billing com status de trial, barra de uso e cards de planos
+
+#### Decisão arquitetural
+- Trial check no `DashboardLayout` (Server Component), não no middleware — Prisma não roda em Edge Runtime
+
+---
+
+### Etapa 2 — Integração Stripe ✅
+
+**Concluída em:** Abril 2026
+
+#### O que foi entregue
+
+##### Schema e client
+- `prisma/schema.prisma` — campos `stripeSubscriptionId` e `stripeSubscriptionStatus` adicionados ao model `Agency`
+- `npx prisma db push` executado — colunas criadas no Supabase
+- `lib/billing/stripe.ts` — Stripe client singleton (API version `2026-03-25.dahlia`)
+- `lib/billing/plans.ts` — `getStripePriceId(plan)` e `getPlanByPriceId(priceId)` para mapear planos ↔ Price IDs do Stripe
+- `lib/db/agencies.ts` — `getAgencyByStripeCustomerId()` para lookup nos webhooks
+
+##### API routes
+- `app/api/billing/checkout/route.ts` — cria Stripe Checkout Session em modo `subscription`; reusa customer existente se houver; aceita `{ plan }` no body
+- `app/api/billing/portal/route.ts` — cria Stripe Customer Portal Session para autoatendimento (cancelar, trocar cartão, mudar plano)
+- `app/api/webhooks/stripe/route.ts` — handler de eventos com validação de assinatura:
+  - `checkout.session.completed` → salva `stripeCustomerId`, `stripeSubscriptionId`, `plan`, `status`
+  - `customer.subscription.updated` → atualiza `plan` (via price ID) e `stripeSubscriptionStatus`
+  - `customer.subscription.deleted` → reseta para `STARTER`, limpa subscriptionId, status `canceled`
+  - `invoice.payment_failed` → status `past_due` (preparado para trigger de email na Etapa 4)
+
+##### UI atualizada
+- `components/billing/CheckoutButton.tsx` — client component com loading state; redireciona para checkout ou portal (se já tem assinatura)
+- `components/billing/ManageSubscriptionButton.tsx` — client component para abrir portal Stripe
+- `app/(dashboard)/dashboard/billing/page.tsx` — botões de upgrade funcionais, banner de `past_due`, feedback de retorno do checkout (`?checkout=success|canceled`)
+- `app/(dashboard)/layout.tsx` — trial check atualizado: respeita `stripeSubscriptionStatus === 'active' | 'trialing'`
+
+#### Variáveis de ambiente necessárias (adicionar no `.env` e na Vercel)
+| Variável | Descrição |
+|---|---|
+| `STRIPE_SECRET_KEY` | Chave secreta do Stripe Dashboard |
+| `STRIPE_WEBHOOK_SECRET` | Gerado com `stripe listen --forward-to` (dev) ou no Dashboard (prod) |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Chave pública (ainda não usada, mas configurar agora) |
+| `STRIPE_PRICE_ID_STARTER` | Price ID do plano Starter no Stripe |
+| `STRIPE_PRICE_ID_PRO` | Price ID do plano Pro no Stripe |
+| `STRIPE_PRICE_ID_AGENCY` | Price ID do plano Agency no Stripe |
+
+#### Setup necessário no Stripe Dashboard
+1. Criar 3 produtos (Starter, Pro, Agency) com preços recorrentes mensais
+2. Copiar os Price IDs para as variáveis de ambiente acima
+3. Configurar o webhook endpoint: `{APP_URL}/api/webhooks/stripe`
+   - Eventos a escutar: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.payment_failed`
+4. Configurar o Customer Portal no Stripe Dashboard (Billing → Customer portal)
+
+#### Teste local com Stripe CLI
+```bash
+stripe listen --forward-to localhost:3000/api/webhooks/stripe
+```
+
+---
+
+### Etapa 3 — Emails transacionais ✅
+
+**Concluída em:** Abril 2026
+
+#### O que foi entregue
+
+##### Templates de email (React Email)
+- `emails/WelcomeEmail.tsx` — boas-vindas ao criar a agência (7 dias de trial, link para o painel)
+- `emails/TrialExpiringEmail.tsx` — aviso 3 dias antes do trial encerrar (link para billing)
+- `emails/PaymentFailedEmail.tsx` — falha no pagamento (link para gerenciar assinatura)
+- `emails/IntegrationExpiredEmail.tsx` — token OAuth expirado (link para reconectar integração)
+- `emails/ClientInviteEmail.tsx` — já existia ✅
+
+##### Funções de envio centralizadas
+- `lib/email/index.ts` — `sendWelcomeEmail()`, `sendTrialExpiringEmail()`, `sendPaymentFailedEmail()`, `sendIntegrationExpiredEmail()`
+  - Helper `getResend()` — retorna null silenciosamente se `RESEND_API_KEY` não configurada (não quebra em dev)
+  - Helper `formatDate()` — formata datas em pt-BR
+  - `PLATFORM_LABELS` — mapeia `META_ADS` → `'Meta Ads'`, etc.
+  - FROM: `Metrik <onboarding@resend.dev>` (trocar para domínio verificado em produção)
+
+##### Cron de trial reminder
+- `app/api/cron/trial-reminder/route.ts` — dispara `TrialExpiringEmail` para agências cujo trial encerra entre 2.5 e 3.5 dias a partir de agora (janela de ±12h garante disparo único)
+  - Filtra apenas agências sem `stripeCustomerId` (ainda não assinaram)
+- `vercel.json` — cron adicionado: `0 9 * * *` (9h UTC diariamente)
+
+##### Pontos de disparo integrados
+- `lib/auth/actions.ts` — `signUp()` e `completeGoogleSignup()` disparam `sendWelcomeEmail()` (fire-and-forget com `void`)
+- `app/api/webhooks/stripe/route.ts` — `handleInvoicePaymentFailed()` dispara `sendPaymentFailedEmail()` após marcar `past_due`
+- `lib/integrations/refresh.ts` — `refreshMetaToken()` e `refreshGoogleToken()` agora retornam `Promise<boolean>` (true = sucesso, false = expirou)
+- `app/api/cron/refresh-tokens/route.ts` — detecta `false` no retorno do refresh, busca admin da agência via join (integration → client → agency → users) e dispara `sendIntegrationExpiredEmail()`; contador `failed` agora incrementa corretamente
+
+#### Variável de ambiente necessária
+| Variável | Descrição |
+|---|---|
+| `RESEND_API_KEY` | Chave da API do Resend (resend.com) |
+
+#### Setup necessário no Resend
+1. Criar conta em resend.com
+2. Gerar API Key e adicionar em `RESEND_API_KEY` no `.env` e na Vercel
+3. Em produção: verificar domínio (ex: `metrik.com.br`) e trocar o `FROM` em `lib/email/index.ts`

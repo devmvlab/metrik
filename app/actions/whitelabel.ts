@@ -4,7 +4,7 @@ import { z } from 'zod'
 import { revalidatePath } from 'next/cache'
 import { db } from '@/lib/db'
 import { requireAgencyAdmin } from '@/lib/auth/session'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 const whitelabelSchema = z.object({
   primaryColor: z
@@ -43,12 +43,13 @@ export async function updateWhitelabel(formData: FormData): Promise<WhitelabelRe
     const ext = logoFile.name.split('.').pop() ?? 'png'
     const path = `logos/${session.agencyId}/logo.${ext}`
 
-    const supabase = createClient()
+    const supabase = createAdminClient()
     const { error: uploadError } = await supabase.storage
       .from('agency-assets')
       .upload(path, logoFile, { upsert: true, contentType: logoFile.type })
 
     if (uploadError) {
+      console.error('[whitelabel] upload error:', uploadError.message)
       return { success: false, error: 'Erro ao enviar imagem. Tente novamente.', code: 'UPLOAD_ERROR' }
     }
 
