@@ -50,22 +50,19 @@ export default async function ClientDashboardPage({
 
 	if (!session.clientId) notFound();
 
-	// Valida que o cliente pertence à agência do usuário autenticado
-	const client = await db.client.findFirst({
-		where: { id: session.clientId, agencyId: session.agencyId },
-		select: { id: true, name: true },
-	});
-	if (!client) notFound();
-
 	const period = parsePeriod(searchParams.period);
 	const { start, end } = getDateRange(period);
 
-	const data = await getDashboardData(
-		session.clientId,
-		session.agencyId,
-		start,
-		end,
-	);
+	// Valida o cliente e busca os dados do dashboard em paralelo
+	const [client, data] = await Promise.all([
+		db.client.findFirst({
+			where: { id: session.clientId, agencyId: session.agencyId },
+			select: { id: true, name: true },
+		}),
+		getDashboardData(session.clientId, session.agencyId, start, end),
+	]);
+
+	if (!client) notFound();
 	const { consolidated, platformBreakdown, dailySeries, campaigns } = data;
 
 	return (

@@ -1,3 +1,4 @@
+import { cache } from 'react'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { Role } from '@prisma/client'
@@ -15,7 +16,7 @@ export type SessionUser = {
  * Usa getUser() (valida JWT contra o servidor) — seguro para uso em Server Components.
  * Retorna null se não houver sessão ou se o usuário não tiver app_metadata configurado.
  */
-export async function getSession(): Promise<SessionUser | null> {
+export const getSession = cache(async (): Promise<SessionUser | null> => {
   const supabase = createClient()
   const {
     data: { user },
@@ -37,7 +38,7 @@ export async function getSession(): Promise<SessionUser | null> {
     role: role as Role,
     clientId: client_id as string | undefined,
   }
-}
+})
 
 /**
  * Retorna o usuário autenticado ou redireciona para /login.
