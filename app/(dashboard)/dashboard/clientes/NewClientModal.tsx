@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { useFormState, useFormStatus } from 'react-dom'
 import {
   Dialog,
   DialogContent,
@@ -14,6 +15,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Plus, ArrowUpRight } from 'lucide-react'
+import { createClientAction } from '@/lib/clients/actions'
+import { useState } from 'react'
 
 type Props = {
   atLimit?: boolean
@@ -21,37 +24,26 @@ type Props = {
   planLimit?: number
 }
 
+function SubmitButton() {
+  const { pending } = useFormStatus()
+  return (
+    <Button type="submit" size="sm" disabled={pending}>
+      {pending ? 'Enviando convite...' : 'Criar e enviar convite'}
+    </Button>
+  )
+}
+
 export function NewClientModal({ atLimit = false, planName, planLimit }: Props) {
   const [open, setOpen] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [isPending, startTransition] = useTransition()
   const router = useRouter()
+  const [state, action] = useFormState(createClientAction, null)
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    setError(null)
-
-    const formData = new FormData(e.currentTarget)
-    const name = formData.get('name') as string
-    const email = formData.get('email') as string
-
-    startTransition(async () => {
-      const res = await fetch('/api/clients', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email }),
-      })
-
-      if (!res.ok) {
-        const data = await res.json()
-        setError(data.error ?? 'Erro ao criar cliente')
-        return
-      }
-
+  useEffect(() => {
+    if (state?.success) {
       setOpen(false)
       router.refresh()
-    })
-  }
+    }
+  }, [state, router])
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -90,10 +82,10 @@ export function NewClientModal({ atLimit = false, planName, planLimit }: Props) 
           </div>
         ) : (
           // Estado: normal — formulário de criação
-          <form onSubmit={handleSubmit} className="space-y-4 pt-2">
-            {error && (
+          <form action={action} className="space-y-4 pt-2">
+            {state && !state.success && (
               <div className="p-3 rounded-md bg-red-50 border border-red-200 text-red-800 text-sm">
-                {error}
+                {state.error}
               </div>
             )}
 
@@ -126,13 +118,10 @@ export function NewClientModal({ atLimit = false, planName, planLimit }: Props) 
                 variant="outline"
                 size="sm"
                 onClick={() => setOpen(false)}
-                disabled={isPending}
               >
                 Cancelar
               </Button>
-              <Button type="submit" size="sm" disabled={isPending}>
-                {isPending ? 'Enviando convite...' : 'Criar e enviar convite'}
-              </Button>
+              <SubmitButton />
             </div>
           </form>
         )}

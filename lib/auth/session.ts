@@ -55,7 +55,7 @@ export async function requireSession(): Promise<SessionUser> {
  */
 export async function requireAgencyAdmin(): Promise<SessionUser> {
   const session = await requireSession()
-  if (session.role !== 'AGENCY_ADMIN') redirect('/login')
+  if (session.role !== 'AGENCY_ADMIN') redirect('/client')
   return session
 }
 

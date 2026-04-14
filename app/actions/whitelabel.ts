@@ -12,7 +12,7 @@ const whitelabelSchema = z.object({
     .regex(/^#[0-9a-fA-F]{6}$/, 'Cor inválida. Use o formato #RRGGBB.')
     .optional()
     .or(z.literal('')),
-  logoUrl: z.string().url('URL inválida').optional().or(z.literal('')),
+  logoUrl: z.url('URL inválida').optional().or(z.literal('')),
 })
 
 type WhitelabelResult =
@@ -58,9 +58,12 @@ export async function updateWhitelabel(formData: FormData): Promise<WhitelabelRe
   }
 
   // Valida campos de texto
+  // formData.get() retorna null quando o campo não existe — converte para undefined
+  // para que o schema optional() aceite ("não fornecido = não alterar")
+  const rawLogoUrl = logoUrl ?? (formData.get('logoUrl') as string | null)
   const parsed = whitelabelSchema.safeParse({
     primaryColor: formData.get('primaryColor') as string,
-    logoUrl: logoUrl ?? (formData.get('logoUrl') as string),
+    logoUrl: rawLogoUrl !== null ? rawLogoUrl : undefined,
   })
 
   if (!parsed.success) {
@@ -91,6 +94,7 @@ export async function updateWhitelabel(formData: FormData): Promise<WhitelabelRe
 
     revalidatePath('/dashboard')
     revalidatePath('/dashboard/configuracoes')
+    revalidatePath('/client')
 
     return { success: true, message: 'Configurações salvas com sucesso.' }
   } catch {

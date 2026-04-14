@@ -13,8 +13,11 @@ export function MetricCard({ label, value, icon: Icon, description }: MetricCard
     <Card className="p-5 border border-neutral-200 shadow-sm bg-white">
       <div className="flex items-start justify-between mb-3">
         <p className="text-xs font-medium text-neutral-500 uppercase tracking-wide">{label}</p>
-        <div className="w-8 h-8 rounded-lg bg-neutral-100 flex items-center justify-center">
-          <Icon className="w-4 h-4 text-neutral-600" />
+        <div
+          className="w-8 h-8 rounded-lg flex items-center justify-center"
+          style={{ backgroundColor: 'rgba(var(--agency-primary-rgb, 82 82 82), 0.12)' }}
+        >
+          <Icon className="w-4 h-4" style={{ color: 'var(--agency-primary, rgb(82 82 82))' }} />
         </div>
       </div>
       <p className="text-2xl font-bold text-neutral-900 tabular-nums">{value}</p>

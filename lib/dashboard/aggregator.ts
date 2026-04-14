@@ -111,21 +111,24 @@ export async function getDashboardData(
   const metaImpressions = metaCampaigns.reduce((s, c) => s + c.impressions, 0)
   const metaClicks = metaCampaigns.reduce((s, c) => s + c.clicks, 0)
   const metaConversions = metaCampaigns.reduce((s, c) => s + c.conversions, 0)
+  const metaRevenue = metaCampaigns.reduce((s, c) => s + c.purchaseRoas * c.spend, 0)
 
   const googleSpend = googleAdsCampaigns.reduce((s, c) => s + c.costBrl, 0)
   const googleImpressions = googleAdsCampaigns.reduce((s, c) => s + c.impressions, 0)
   const googleClicks = googleAdsCampaigns.reduce((s, c) => s + c.clicks, 0)
   const googleConversions = googleAdsCampaigns.reduce((s, c) => s + c.conversions, 0)
+  const googleRevenue = googleAdsCampaigns.reduce((s, c) => s + c.roas * c.costBrl, 0)
 
   const totalSpend = metaSpend + googleSpend
   const totalImpressions = metaImpressions + googleImpressions
   const totalClicks = metaClicks + googleClicks
   const totalConversions = metaConversions + googleConversions
+  const totalRevenue = metaRevenue + googleRevenue
 
-  const avgCtr = totalClicks > 0 ? (totalClicks / totalImpressions) * 100 : 0
+  const avgCtr = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0
   const avgCpc = totalClicks > 0 ? totalSpend / totalClicks : 0
   const avgCpa = totalConversions > 0 ? totalSpend / totalConversions : 0
-  const avgRoas = totalSpend > 0 ? totalConversions / totalSpend : 0
+  const avgRoas = totalSpend > 0 ? totalRevenue / totalSpend : 0
 
   const consolidated: ConsolidatedMetrics = {
     totalSpend,

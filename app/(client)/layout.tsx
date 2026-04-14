@@ -10,18 +10,29 @@ export default async function ClientLayout({ children }: { children: React.React
   const logoUrl = agency?.whiteLabelConfig?.logoUrl ?? null
   const agencyName = agency?.name ?? 'Dashboard'
 
+  // Converte hex para componentes RGB para permitir rgba() nos componentes
+  const hex = primaryColor.replace('#', '')
+  const r = parseInt(hex.slice(0, 2), 16)
+  const g = parseInt(hex.slice(2, 4), 16)
+  const b = parseInt(hex.slice(4, 6), 16)
+  const primaryRgb = `${r}, ${g}, ${b}`
+
   return (
     <>
-      {/* Injeta a cor primária da agência como CSS variable */}
+      {/* Injeta cor primária e variante RGB como CSS variables */}
       <style>{`
         :root {
           --agency-primary: ${primaryColor};
+          --agency-primary-rgb: ${primaryRgb};
         }
       `}</style>
 
       <div className="min-h-screen bg-neutral-50 print:bg-white">
-        {/* Header white-label */}
-        <header className="bg-white border-b border-neutral-200 print:border-neutral-300">
+        {/* Header white-label com cor da marca */}
+        <header
+          style={{ backgroundColor: 'var(--agency-primary)' }}
+          className="print:bg-white print:border-b print:border-neutral-300"
+        >
           <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
             <div className="flex items-center gap-3">
               {logoUrl ? (
@@ -33,10 +44,10 @@ export default async function ClientLayout({ children }: { children: React.React
                   className="h-8 w-auto object-contain"
                 />
               ) : (
-                <span className="font-semibold text-neutral-900">{agencyName}</span>
+                <span className="font-semibold text-white print:text-neutral-900">{agencyName}</span>
               )}
             </div>
-            <span className="text-xs text-neutral-400 print:hidden">Dashboard de Performance</span>
+            <span className="text-xs text-white/60 print:hidden">Dashboard de Performance</span>
           </div>
         </header>
 
