@@ -59,6 +59,13 @@ async function handleSubscriptionUpdated(event: Stripe.CustomerSubscriptionUpdat
   const priceId = subscription.items.data[0]?.price.id
   const newPlan = priceId ? getPlanByPriceId(priceId) : null
 
+  if (priceId && !newPlan) {
+    console.error(
+      `[stripe] subscription.updated: price ID "${priceId}" não mapeado para nenhum plano. ` +
+        'Verifique as variáveis STRIPE_PRICE_ID_STARTER, STRIPE_PRICE_ID_PRO e STRIPE_PRICE_ID_AGENCY.',
+    )
+  }
+
   await db.agency.update({
     where: { id: agency.id },
     data: {

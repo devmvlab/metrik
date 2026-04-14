@@ -26,6 +26,13 @@ export default async function DashboardPage() {
       href: '/dashboard/clientes',
     },
     {
+      id: 'integration',
+      label: 'Conectar primeira integração',
+      description: 'Vincule Meta Ads, Google Ads ou GA4 ao seu cliente.',
+      done: stats.hasConnectedIntegration,
+      href: '/dashboard/clientes',
+    },
+    {
       id: 'whitelabel',
       label: 'Personalizar white-label',
       description: 'Configure logo e cores da sua marca.',

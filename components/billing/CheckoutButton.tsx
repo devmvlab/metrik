@@ -18,15 +18,19 @@ export function CheckoutButton({ plan, hasSubscription }: Props) {
     setLoading(true)
     setError(null)
 
-    // Se já tem assinatura, redirecionar para o portal Stripe
+    // Se já tem assinatura ativa, fazer upgrade direto via Stripe API (sem redirecionar para portal)
     if (hasSubscription) {
-      const res = await fetch('/api/billing/portal', { method: 'POST' })
+      const res = await fetch('/api/billing/upgrade', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan }),
+      })
       if (res.ok) {
-        const { url } = await res.json()
-        window.location.href = url
+        window.location.href = '/dashboard/billing?checkout=success'
       } else {
         setLoading(false)
-        setError('Erro ao abrir portal. Tente novamente.')
+        const data = await res.json().catch(() => ({}))
+        setError(data.error ?? 'Erro ao atualizar plano. Tente novamente.')
       }
       return
     }

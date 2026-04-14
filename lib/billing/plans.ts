@@ -44,10 +44,13 @@ export function getStripePriceId(plan: Plan): string {
  * Retorna null se o priceId não corresponder a nenhum plano configurado.
  */
 export function getPlanByPriceId(priceId: string): Plan | null {
-  const map: Partial<Record<string, Plan>> = {
-    [process.env.STRIPE_PRICE_ID_STARTER ?? '__unset__']: 'STARTER',
-    [process.env.STRIPE_PRICE_ID_PRO ?? '__unset__']: 'PRO',
-    [process.env.STRIPE_PRICE_ID_AGENCY ?? '__unset__']: 'AGENCY',
+  const entries: Array<[string | undefined, Plan]> = [
+    [process.env.STRIPE_PRICE_ID_STARTER, 'STARTER'],
+    [process.env.STRIPE_PRICE_ID_PRO, 'PRO'],
+    [process.env.STRIPE_PRICE_ID_AGENCY, 'AGENCY'],
+  ]
+  for (const [id, plan] of entries) {
+    if (id && id === priceId) return plan
   }
-  return map[priceId] ?? null
+  return null
 }

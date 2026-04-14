@@ -2,11 +2,13 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { requireAgencyAdmin } from '@/lib/auth/session'
 import { getDashboardData } from '@/lib/dashboard/aggregator'
-import { parsePeriod, getDateRange } from '@/lib/dashboard/periods'
+import { parsePeriod, resolveDateRange } from '@/lib/dashboard/periods'
 
 const querySchema = z.object({
   clientId: z.string().min(1),
   period: z.string().optional(),
+  from: z.string().optional(),
+  to: z.string().optional(),
 })
 
 /**
@@ -21,6 +23,8 @@ export async function GET(req: NextRequest) {
   const parsed = querySchema.safeParse({
     clientId: searchParams.get('clientId'),
     period: searchParams.get('period') ?? undefined,
+    from: searchParams.get('from') ?? undefined,
+    to: searchParams.get('to') ?? undefined,
   })
 
   if (!parsed.success) {
@@ -30,9 +34,9 @@ export async function GET(req: NextRequest) {
     )
   }
 
-  const { clientId, period: periodRaw } = parsed.data
+  const { clientId, period: periodRaw, from, to } = parsed.data
   const period = parsePeriod(periodRaw)
-  const { start, end } = getDateRange(period)
+  const { start, end } = resolveDateRange(period, from, to)
 
   try {
     const data = await getDashboardData(clientId, session.agencyId, start, end)

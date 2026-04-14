@@ -58,6 +58,7 @@ export async function POST(request: Request) {
   const checkoutSession = await stripe.checkout.sessions.create({
     mode: 'subscription',
     payment_method_types: ['card'],
+    locale: 'pt-BR',
     ...(agency.stripeCustomerId
       ? { customer: agency.stripeCustomerId }
       : { customer_email: session.email }),

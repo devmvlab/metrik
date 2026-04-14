@@ -8,12 +8,13 @@ export async function getAgencyById(agencyId: string) {
 }
 
 export async function getAgencyStats(agencyId: string) {
-  const [totalClients, activeClients] = await Promise.all([
+  const [totalClients, activeClients, connectedIntegrations] = await Promise.all([
     db.client.count({ where: { agencyId } }),
     db.client.count({ where: { agencyId, status: 'ACTIVE' } }),
+    db.integration.count({ where: { client: { agencyId }, status: 'CONNECTED' } }),
   ])
 
-  return { totalClients, activeClients }
+  return { totalClients, activeClients, hasConnectedIntegration: connectedIntegrations > 0 }
 }
 
 /**
@@ -32,7 +33,18 @@ export async function getAgencyWithPlanUsage(agencyId: string) {
   const [agency, clientCount] = await Promise.all([
     db.agency.findUnique({
       where: { id: agencyId },
-      include: { whiteLabelConfig: true },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        plan: true,
+        trialEndsAt: true,
+        stripeCustomerId: true,
+        stripeSubscriptionId: true,
+        stripeSubscriptionStatus: true,
+        createdAt: true,
+        whiteLabelConfig: true,
+      },
     }),
     db.client.count({ where: { agencyId } }),
   ])

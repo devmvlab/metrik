@@ -13,8 +13,8 @@ import {
 import { requireClientViewer } from "@/lib/auth/session";
 import { getDashboardData } from "@/lib/dashboard/aggregator";
 import {
-	getDateRange,
 	parsePeriod,
+	resolveDateRange,
 	PERIOD_LABELS,
 } from "@/lib/dashboard/periods";
 import { db } from "@/lib/db";
@@ -44,14 +44,14 @@ function formatNumber(n: number, decimals = 0): string {
 export default async function ClientDashboardPage({
 	searchParams,
 }: {
-	searchParams: { period?: string };
+	searchParams: { period?: string; from?: string; to?: string };
 }) {
 	const session = await requireClientViewer();
 
 	if (!session.clientId) notFound();
 
 	const period = parsePeriod(searchParams.period);
-	const { start, end } = getDateRange(period);
+	const { start, end } = resolveDateRange(period, searchParams.from, searchParams.to);
 
 	// Valida o cliente e busca os dados do dashboard em paralelo
 	const [client, data] = await Promise.all([

@@ -161,10 +161,14 @@ export default async function BillingPage({
           <div>
             <p className="text-xs text-neutral-500 mb-1">Plano atual</p>
             <div className="flex items-center gap-2">
-              <p className="text-lg font-semibold text-neutral-900">{PLAN_LABELS[plan]}</p>
-              <Badge variant="outline" className="text-xs">
-                {PLAN_PRICES[plan]}
-              </Badge>
+              <p className="text-lg font-semibold text-neutral-900">
+                {onTrial || trialExpired ? 'Trial gratuito' : PLAN_LABELS[plan]}
+              </p>
+              {!onTrial && !trialExpired && (
+                <Badge variant="outline" className="text-xs">
+                  {PLAN_PRICES[plan]}
+                </Badge>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -208,8 +212,11 @@ export default async function BillingPage({
         <h2 className="text-sm font-semibold text-neutral-900 mb-4">Planos disponíveis</h2>
         <div className="grid grid-cols-3 gap-4">
           {PLAN_ORDER.map((p) => {
-            const isCurrent = p === plan
-            const isUpgrade = PLAN_ORDER.indexOf(p) > PLAN_ORDER.indexOf(plan)
+            // Durante trial ou trial expirado, nenhum plano é "atual" — usuário ainda não assinou
+            const isCurrent = !onTrial && !trialExpired && p === plan && hasActiveSubscription
+            const isUpgrade = onTrial || trialExpired
+              ? true
+              : PLAN_ORDER.indexOf(p) > PLAN_ORDER.indexOf(plan)
 
             return (
               <Card

@@ -15,7 +15,7 @@ import {
 } from 'lucide-react'
 import { requireAgencyAdmin } from '@/lib/auth/session'
 import { getDashboardData } from '@/lib/dashboard/aggregator'
-import { getDateRange, parsePeriod, PERIOD_LABELS } from '@/lib/dashboard/periods'
+import { parsePeriod, resolveDateRange, PERIOD_LABELS } from '@/lib/dashboard/periods'
 import { db } from '@/lib/db'
 import { MetricCard } from '@/components/dashboard/MetricCard'
 import { PeriodSelector } from '@/components/dashboard/PeriodSelector'
@@ -38,7 +38,7 @@ export default async function ClientDashboardPreviewPage({
   searchParams,
 }: {
   params: { id: string }
-  searchParams: { period?: string }
+  searchParams: { period?: string; from?: string; to?: string }
 }) {
   const session = await requireAgencyAdmin()
 
@@ -51,7 +51,7 @@ export default async function ClientDashboardPreviewPage({
   if (!client) notFound()
 
   const period = parsePeriod(searchParams.period)
-  const { start, end } = getDateRange(period)
+  const { start, end } = resolveDateRange(period, searchParams.from, searchParams.to)
 
   const data = await getDashboardData(client.id, session.agencyId, start, end)
   const { consolidated, platformBreakdown, dailySeries, campaigns } = data
