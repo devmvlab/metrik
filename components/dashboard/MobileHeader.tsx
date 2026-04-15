@@ -1,7 +1,8 @@
+'use client'
+
 import Link from 'next/link'
-import { headers } from 'next/headers'
+import { usePathname } from 'next/navigation'
 import { LayoutDashboard, Users, Settings, CreditCard } from 'lucide-react'
-import { getSession } from '@/lib/auth/session'
 import { MetrikLogo } from '@/components/marketing/MetrikLogo'
 import { LogoutButton } from '@/components/dashboard/LogoutButton'
 
@@ -12,16 +13,15 @@ const navItems = [
   { href: '/dashboard/billing', label: 'Plano', icon: CreditCard, exact: false },
 ]
 
-export default async function MobileHeader() {
-  await getSession()
-  const pathname = headers().get('x-pathname') ?? ''
+export default function MobileHeader() {
+  const pathname = usePathname()
 
   return (
-    <header className="md:hidden flex flex-col border-b border-neutral-200 bg-white shrink-0">
+    <header className="md:hidden flex flex-col border-b border-slate-800 bg-slate-900 shrink-0">
       {/* Top bar */}
       <div className="flex items-center justify-between px-4 h-12">
         <Link href="/dashboard">
-          <MetrikLogo size="sm" textClassName="text-neutral-900" />
+          <MetrikLogo size="sm" />
         </Link>
         <LogoutButton />
       </div>
@@ -36,8 +36,8 @@ export default async function MobileHeader() {
               href={href}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm whitespace-nowrap transition-colors shrink-0 ${
                 isActive
-                  ? 'bg-neutral-100 text-neutral-900 font-medium'
-                  : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50'
+                  ? 'bg-violet-500/20 text-violet-300 font-medium'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800'
               }`}
             >
               <Icon className="w-3.5 h-3.5 shrink-0" />

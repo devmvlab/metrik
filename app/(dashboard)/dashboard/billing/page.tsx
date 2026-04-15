@@ -53,11 +53,11 @@ function TrialBanner({ trialEndsAt, expired }: { trialEndsAt: Date; expired: boo
 
   if (expired) {
     return (
-      <div className="mb-6 flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3">
-        <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-500" />
+      <div className="mb-6 flex items-start gap-3 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3">
+        <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-400" />
         <div>
-          <p className="text-sm font-medium text-red-900">Trial expirado</p>
-          <p className="text-sm text-red-700">
+          <p className="text-sm font-medium text-red-300">Trial expirado</p>
+          <p className="text-sm text-red-400">
             Seu período de teste encerrou em {formatDate(trialEndsAt)}. Escolha um plano abaixo para
             continuar usando o Metrik.
           </p>
@@ -67,14 +67,14 @@ function TrialBanner({ trialEndsAt, expired }: { trialEndsAt: Date; expired: boo
   }
 
   return (
-    <div className="mb-6 flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
-      <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
+    <div className="mb-6 flex items-start gap-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3">
+      <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
       <div>
-        <p className="text-sm font-medium text-amber-900">
+        <p className="text-sm font-medium text-amber-300">
           Trial gratuito — {daysLeft} dia{daysLeft !== 1 ? 's' : ''} restante
           {daysLeft !== 1 ? 's' : ''}
         </p>
-        <p className="text-sm text-amber-700">
+        <p className="text-sm text-amber-400">
           Seu trial encerra em {formatDate(trialEndsAt)}. Escolha um plano para não perder o acesso.
         </p>
       </div>
@@ -108,17 +108,17 @@ export default async function BillingPage({
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-xl font-semibold text-neutral-900">Plano & Billing</h1>
-        <p className="text-sm text-neutral-500 mt-1">Gerencie seu plano e assinatura.</p>
+        <h1 className="text-xl font-semibold text-white">Plano & Billing</h1>
+        <p className="text-sm text-slate-400 mt-1">Gerencie seu plano e assinatura.</p>
       </div>
 
       {/* Feedback de retorno do checkout */}
       {searchParams.checkout === 'success' && (
-        <div className="mb-6 flex items-start gap-3 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3">
-          <CheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
+        <div className="mb-6 flex items-start gap-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-3">
+          <CheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
           <div>
-            <p className="text-sm font-medium text-emerald-900">Assinatura ativada com sucesso!</p>
-            <p className="text-sm text-emerald-700">
+            <p className="text-sm font-medium text-emerald-300">Assinatura ativada com sucesso!</p>
+            <p className="text-sm text-emerald-400">
               Seu plano foi atualizado. Bem-vindo ao Metrik.
             </p>
           </div>
@@ -126,9 +126,9 @@ export default async function BillingPage({
       )}
 
       {searchParams.checkout === 'canceled' && (
-        <div className="mb-6 flex items-start gap-3 rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-3">
-          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-neutral-400" />
-          <p className="text-sm text-neutral-600">
+        <div className="mb-6 flex items-start gap-3 rounded-lg border border-slate-700 bg-slate-800 px-4 py-3">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
+          <p className="text-sm text-slate-400">
             Pagamento cancelado. Seu plano não foi alterado.
           </p>
         </div>
@@ -141,11 +141,11 @@ export default async function BillingPage({
 
       {/* Aviso de pagamento em atraso */}
       {isPastDue && (
-        <div className="mb-6 flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3">
-          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-500" />
+        <div className="mb-6 flex items-start gap-3 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-400" />
           <div>
-            <p className="text-sm font-medium text-red-900">Pagamento em atraso</p>
-            <p className="text-sm text-red-700">
+            <p className="text-sm font-medium text-red-300">Pagamento em atraso</p>
+            <p className="text-sm text-red-400">
               Houve um problema com o seu pagamento. Atualize seu método de pagamento para continuar.
             </p>
           </div>
@@ -156,16 +156,16 @@ export default async function BillingPage({
       )}
 
       {/* Card do plano atual */}
-      <Card className="mb-8 border border-neutral-200 shadow-sm p-5">
+      <Card className="mb-8 bg-slate-900 border-slate-800 shadow-none p-5">
         <div className="flex items-start justify-between mb-4">
           <div>
-            <p className="text-xs text-neutral-500 mb-1">Plano atual</p>
+            <p className="text-xs text-slate-400 mb-1">Plano atual</p>
             <div className="flex items-center gap-2">
-              <p className="text-lg font-semibold text-neutral-900">
+              <p className="text-lg font-semibold text-white">
                 {onTrial || trialExpired ? 'Trial gratuito' : PLAN_LABELS[plan]}
               </p>
               {!onTrial && !trialExpired && (
-                <Badge variant="outline" className="text-xs">
+                <Badge variant="outline" className="text-xs border-slate-700 text-slate-300">
                   {PLAN_PRICES[plan]}
                 </Badge>
               )}
@@ -173,7 +173,7 @@ export default async function BillingPage({
           </div>
           <div className="flex items-center gap-2">
             {hasActiveSubscription && (
-              <Badge className="text-xs bg-emerald-100 text-emerald-800 border-emerald-200">
+              <Badge className="text-xs bg-emerald-500/20 text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/20">
                 Ativo
               </Badge>
             )}
@@ -184,23 +184,21 @@ export default async function BillingPage({
         {/* Barra de uso */}
         <div>
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-xs text-neutral-500">Clientes cadastrados</span>
-            <span
-              className={`text-xs font-medium ${atLimit ? 'text-red-600' : 'text-neutral-600'}`}
-            >
+            <span className="text-xs text-slate-400">Clientes cadastrados</span>
+            <span className={`text-xs font-medium ${atLimit ? 'text-red-400' : 'text-slate-400'}`}>
               {clientCount}/{limit}
             </span>
           </div>
-          <div className="h-2 w-full rounded-full bg-neutral-100 overflow-hidden">
+          <div className="h-2 w-full rounded-full bg-slate-800 overflow-hidden">
             <div
               className={`h-full rounded-full transition-all ${
-                atLimit ? 'bg-red-500' : usagePercent >= 80 ? 'bg-amber-400' : 'bg-emerald-500'
+                atLimit ? 'bg-red-500' : usagePercent >= 80 ? 'bg-amber-400' : 'bg-violet-600'
               }`}
               style={{ width: `${usagePercent}%` }}
             />
           </div>
           {atLimit && (
-            <p className="text-xs text-red-600 mt-1.5">
+            <p className="text-xs text-red-400 mt-1.5">
               Limite atingido. Faça upgrade para adicionar mais clientes.
             </p>
           )}
@@ -209,10 +207,9 @@ export default async function BillingPage({
 
       {/* Cards de planos */}
       <div>
-        <h2 className="text-sm font-semibold text-neutral-900 mb-4">Planos disponíveis</h2>
+        <h2 className="text-sm font-semibold text-white mb-4">Planos disponíveis</h2>
         <div className="grid grid-cols-3 gap-4">
           {PLAN_ORDER.map((p) => {
-            // Durante trial ou trial expirado, nenhum plano é "atual" — usuário ainda não assinou
             const isCurrent = !onTrial && !trialExpired && p === plan && hasActiveSubscription
             const isUpgrade = onTrial || trialExpired
               ? true
@@ -221,22 +218,26 @@ export default async function BillingPage({
             return (
               <Card
                 key={p}
-                className={`p-5 border shadow-sm flex flex-col ${
-                  isCurrent ? 'border-neutral-900 ring-1 ring-neutral-900' : 'border-neutral-200'
+                className={`p-5 shadow-none flex flex-col bg-slate-900 ${
+                  isCurrent
+                    ? 'border-violet-500 ring-1 ring-violet-500/50'
+                    : 'border-slate-800'
                 }`}
               >
                 <div className="flex items-center justify-between mb-1">
-                  <p className="font-semibold text-neutral-900">{PLAN_LABELS[p]}</p>
+                  <p className="font-semibold text-white">{PLAN_LABELS[p]}</p>
                   {isCurrent && (
-                    <Badge className="text-xs bg-neutral-900 text-white">Atual</Badge>
+                    <Badge className="text-xs bg-violet-500/20 text-violet-300 border-violet-500/30 hover:bg-violet-500/20">
+                      Atual
+                    </Badge>
                   )}
                 </div>
-                <p className="text-sm font-medium text-neutral-600 mb-4">{PLAN_PRICES[p]}</p>
+                <p className="text-sm font-medium text-slate-400 mb-4">{PLAN_PRICES[p]}</p>
 
                 <ul className="space-y-2 flex-1 mb-5">
                   {PLAN_FEATURES[p].map((feat) => (
-                    <li key={feat} className="flex items-start gap-2 text-xs text-neutral-600">
-                      <CheckCircle2 className="w-3.5 h-3.5 shrink-0 text-emerald-500 mt-0.5" />
+                    <li key={feat} className="flex items-start gap-2 text-xs text-slate-400">
+                      <CheckCircle2 className="w-3.5 h-3.5 shrink-0 text-emerald-400 mt-0.5" />
                       {feat}
                     </li>
                   ))}
@@ -245,11 +246,10 @@ export default async function BillingPage({
                 {isUpgrade ? (
                   <CheckoutButton plan={p} hasSubscription={!!stripeSubscriptionId} />
                 ) : isCurrent ? (
-                  <Button size="sm" variant="outline" className="w-full" disabled>
+                  <Button size="sm" variant="outline" className="w-full border-slate-700 text-slate-400" disabled>
                     Plano atual
                   </Button>
                 ) : (
-                  // Downgrade — via portal Stripe
                   <ManageSubscriptionButton />
                 )}
               </Card>
@@ -257,9 +257,9 @@ export default async function BillingPage({
           })}
         </div>
 
-        <p className="text-xs text-neutral-400 mt-4">
+        <p className="text-xs text-slate-500 mt-4">
           Pagamento via cartão de crédito. Cancele a qualquer momento.{' '}
-          <Link href="/dashboard/configuracoes" className="underline underline-offset-2">
+          <Link href="/dashboard/configuracoes" className="underline underline-offset-2 hover:text-slate-300">
             Dúvidas? Fale conosco.
           </Link>
         </p>

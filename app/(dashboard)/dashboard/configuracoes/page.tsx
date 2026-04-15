@@ -9,8 +9,8 @@ export default async function ConfiguracoesPage() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-xl font-semibold text-neutral-900">Configurações</h1>
-        <p className="text-sm text-neutral-500 mt-1">
+        <h1 className="text-xl font-semibold text-white">Configurações</h1>
+        <p className="text-sm text-slate-400 mt-1">
           Personalize a identidade visual da sua agência no dashboard do cliente.
         </p>
       </div>

@@ -51,7 +51,6 @@ export function WhiteLabelForm({
     if (logoFile) {
       formData.set('logoFile', logoFile)
     }
-    // Se removeu o logo, envia string vazia para limpar
     if (!logoPreview && !logoFile) {
       formData.set('logoUrl', '')
     }
@@ -69,8 +68,8 @@ export function WhiteLabelForm({
         <div
           className={`rounded-lg border px-4 py-3 text-sm ${
             result.success
-              ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
-              : 'border-red-200 bg-red-50 text-red-800'
+              ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300'
+              : 'border-red-500/30 bg-red-500/10 text-red-300'
           }`}
         >
           {result.success ? result.message : result.error}
@@ -78,16 +77,16 @@ export function WhiteLabelForm({
       )}
 
       {/* Logo */}
-      <Card className="p-6 border border-neutral-200 shadow-sm">
+      <Card className="p-6 bg-slate-900 border-slate-800 shadow-none">
         <div className="flex items-center gap-2 mb-5">
-          <Globe className="w-4 h-4 text-neutral-500" />
-          <h2 className="text-sm font-semibold text-neutral-900">Logo da agência</h2>
+          <Globe className="w-4 h-4 text-slate-400" />
+          <h2 className="text-sm font-semibold text-white">Logo da agência</h2>
         </div>
 
         <div className="flex items-start gap-6">
           {/* Preview */}
           <div className="shrink-0">
-            <div className="w-32 h-16 rounded-lg border border-neutral-200 bg-neutral-50 flex items-center justify-center overflow-hidden">
+            <div className="w-32 h-16 rounded-lg border border-slate-700 bg-slate-800 flex items-center justify-center overflow-hidden">
               {logoPreview ? (
                 <Image
                   src={logoPreview}
@@ -98,14 +97,14 @@ export function WhiteLabelForm({
                   unoptimized={logoPreview.startsWith('blob:')}
                 />
               ) : (
-                <span className="text-xs text-neutral-400 text-center px-2">Sem logo</span>
+                <span className="text-xs text-slate-500 text-center px-2">Sem logo</span>
               )}
             </div>
             {logoPreview && (
               <button
                 type="button"
                 onClick={handleRemoveLogo}
-                className="mt-2 flex items-center gap-1 text-xs text-red-500 hover:text-red-700"
+                className="mt-2 flex items-center gap-1 text-xs text-red-400 hover:text-red-300 transition-colors"
               >
                 <X className="w-3 h-3" />
                 Remover
@@ -115,7 +114,7 @@ export function WhiteLabelForm({
 
           {/* Upload */}
           <div className="flex-1">
-            <p className="text-sm text-neutral-600 mb-3">
+            <p className="text-sm text-slate-400 mb-3">
               Recomendado: PNG ou SVG com fundo transparente, 200×60px. Máximo 2MB.
             </p>
             <input
@@ -129,24 +128,24 @@ export function WhiteLabelForm({
               type="button"
               variant="outline"
               size="sm"
-              className="gap-1.5"
+              className="gap-1.5 border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white"
               onClick={() => fileInputRef.current?.click()}
             >
               <Upload className="w-3.5 h-3.5" />
               Escolher imagem
             </Button>
             {logoFile && (
-              <p className="mt-2 text-xs text-neutral-500">{logoFile.name}</p>
+              <p className="mt-2 text-xs text-slate-400">{logoFile.name}</p>
             )}
           </div>
         </div>
       </Card>
 
       {/* Cor primária */}
-      <Card className="p-6 border border-neutral-200 shadow-sm">
+      <Card className="p-6 bg-slate-900 border-slate-800 shadow-none">
         <div className="flex items-center gap-2 mb-5">
-          <Palette className="w-4 h-4 text-neutral-500" />
-          <h2 className="text-sm font-semibold text-neutral-900">Cor da marca</h2>
+          <Palette className="w-4 h-4 text-slate-400" />
+          <h2 className="text-sm font-semibold text-white">Cor da marca</h2>
         </div>
 
         <div className="flex items-center gap-4">
@@ -155,12 +154,12 @@ export function WhiteLabelForm({
               type="color"
               value={primaryColor}
               onChange={(e) => setPrimaryColor(e.target.value)}
-              className="w-10 h-10 rounded-lg border border-neutral-200 cursor-pointer p-0.5 bg-white"
+              className="w-10 h-10 rounded-lg border border-slate-700 cursor-pointer p-0.5 bg-slate-800"
               title="Escolher cor"
             />
           </div>
           <div className="flex-1 max-w-[160px]">
-            <Label htmlFor="primaryColor" className="text-xs text-neutral-500 mb-1.5 block">
+            <Label htmlFor="primaryColor" className="text-xs text-slate-400 mb-1.5 block">
               Código hex
             </Label>
             <Input
@@ -169,12 +168,12 @@ export function WhiteLabelForm({
               value={primaryColor}
               onChange={(e) => setPrimaryColor(e.target.value)}
               placeholder="#2563eb"
-              className="text-sm font-mono h-9"
+              className="text-sm font-mono h-9 bg-slate-800 border-slate-700 text-white placeholder:text-slate-500 focus-visible:ring-violet-500"
               maxLength={7}
             />
           </div>
           <div className="flex-1">
-            <p className="text-xs text-neutral-500 mb-1.5">Prévia</p>
+            <p className="text-xs text-slate-400 mb-1.5">Prévia</p>
             <div className="flex items-center gap-2">
               <div
                 className="h-9 px-4 rounded-md flex items-center text-sm font-medium text-white"
@@ -188,7 +187,11 @@ export function WhiteLabelForm({
       </Card>
 
       <div className="flex justify-end">
-        <Button type="submit" disabled={isPending} className="min-w-[120px]">
+        <Button
+          type="submit"
+          disabled={isPending}
+          className="min-w-[120px] bg-violet-600 hover:bg-violet-700 text-white"
+        >
           {isPending ? 'Salvando...' : 'Salvar alterações'}
         </Button>
       </div>

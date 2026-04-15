@@ -55,7 +55,7 @@ export function CheckoutButton({ plan, hasSubscription }: Props) {
     <div>
       <Button
         size="sm"
-        className="w-full gap-1.5"
+        className="w-full gap-1.5 bg-violet-600 hover:bg-violet-700 text-white border-0"
         onClick={handleClick}
         disabled={loading}
       >
@@ -66,7 +66,7 @@ export function CheckoutButton({ plan, hasSubscription }: Props) {
         )}
         {loading ? 'Aguarde...' : 'Fazer upgrade'}
       </Button>
-      {error && <p className="text-xs text-red-600 mt-1.5 text-center">{error}</p>}
+      {error && <p className="text-xs text-red-400 mt-1.5 text-center">{error}</p>}
     </div>
   )
 }

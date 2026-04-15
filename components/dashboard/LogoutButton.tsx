@@ -11,7 +11,7 @@ export function LogoutButton() {
     <button
       onClick={() => startTransition(() => signOut())}
       disabled={isPending}
-      className="flex items-center gap-2.5 w-full px-3 py-2 rounded-md text-sm text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 transition-colors disabled:opacity-50"
+      className="flex items-center gap-2.5 w-full px-3 py-2 rounded-md text-sm text-slate-400 hover:text-white hover:bg-slate-800 transition-colors disabled:opacity-50"
     >
       <LogOut className="w-4 h-4 shrink-0" />
       {isPending ? 'Saindo...' : 'Sair'}

@@ -8,13 +8,55 @@ export async function getAgencyById(agencyId: string) {
 }
 
 export async function getAgencyStats(agencyId: string) {
-  const [totalClients, activeClients, connectedIntegrations] = await Promise.all([
+  const [
+    totalClients,
+    activeClients,
+    connectedIntegrations,
+    expiredIntegrations,
+    recentClients,
+    agency,
+  ] = await Promise.all([
     db.client.count({ where: { agencyId } }),
     db.client.count({ where: { agencyId, status: 'ACTIVE' } }),
     db.integration.count({ where: { client: { agencyId }, status: 'CONNECTED' } }),
+    db.integration.count({ where: { client: { agencyId }, status: { in: ['EXPIRED', 'ERROR'] } } }),
+    db.client.findMany({
+      where: { agencyId },
+      orderBy: { createdAt: 'desc' },
+      take: 5,
+      select: {
+        id: true,
+        name: true,
+        status: true,
+        createdAt: true,
+        integrations: {
+          select: { platform: true, status: true },
+        },
+      },
+    }),
+    db.agency.findUnique({
+      where: { id: agencyId },
+      select: {
+        plan: true,
+        trialEndsAt: true,
+        stripeSubscriptionStatus: true,
+        stripeCustomerId: true,
+      },
+    }),
   ])
 
-  return { totalClients, activeClients, hasConnectedIntegration: connectedIntegrations > 0 }
+  return {
+    totalClients,
+    activeClients,
+    connectedIntegrations,
+    expiredIntegrations,
+    hasConnectedIntegration: connectedIntegrations > 0,
+    recentClients,
+    plan: agency?.plan ?? 'STARTER',
+    trialEndsAt: agency?.trialEndsAt ?? null,
+    stripeSubscriptionStatus: agency?.stripeSubscriptionStatus ?? null,
+    stripeCustomerId: agency?.stripeCustomerId ?? null,
+  }
 }
 
 /**

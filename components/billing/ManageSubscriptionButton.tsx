@@ -29,7 +29,7 @@ export function ManageSubscriptionButton() {
         size="sm"
         onClick={handleClick}
         disabled={loading}
-        className="gap-1.5"
+        className="gap-1.5 border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white"
       >
         {loading ? (
           <Loader2 className="w-4 h-4 animate-spin" />
@@ -38,7 +38,7 @@ export function ManageSubscriptionButton() {
         )}
         {loading ? 'Aguarde...' : 'Gerenciar assinatura'}
       </Button>
-      {error && <p className="text-xs text-red-600 mt-1.5">{error}</p>}
+      {error && <p className="text-xs text-red-400 mt-1.5">{error}</p>}
     </div>
   )
 }

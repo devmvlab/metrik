@@ -21,11 +21,6 @@ const platformLabels: Record<string, string> = {
   GA4: 'GA4',
 }
 
-const statusVariant: Record<string, 'default' | 'secondary' | 'outline'> = {
-  ACTIVE: 'default',
-  INACTIVE: 'secondary',
-}
-
 export default async function ClientesPage() {
   const session = await requireAgencyAdmin()
   const [clients, agency] = await Promise.all([
@@ -43,8 +38,8 @@ export default async function ClientesPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-xl font-semibold text-neutral-900">Clientes</h1>
-          <p className="text-sm text-neutral-500 mt-1">
+          <h1 className="text-xl font-semibold text-white">Clientes</h1>
+          <p className="text-sm text-slate-400 mt-1">
             {clientCount} de {limit} clientes do plano {PLAN_LABELS[plan]}.
           </p>
         </div>
@@ -54,24 +49,24 @@ export default async function ClientesPage() {
       {/* Barra de uso do plano */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-1.5">
-          <span className="text-xs text-neutral-500">Uso do plano</span>
+          <span className="text-xs text-slate-400">Uso do plano</span>
           {atLimit ? (
             <Link
               href="/dashboard/billing"
-              className="text-xs font-medium text-blue-600 hover:underline"
+              className="text-xs font-medium text-violet-400 hover:text-violet-300 hover:underline"
             >
               Fazer upgrade →
             </Link>
           ) : (
-            <span className="text-xs text-neutral-400">
+            <span className="text-xs text-slate-500">
               {clientCount}/{limit}
             </span>
           )}
         </div>
-        <div className="h-1.5 w-full rounded-full bg-neutral-100 overflow-hidden">
+        <div className="h-1.5 w-full rounded-full bg-slate-800 overflow-hidden">
           <div
             className={`h-full rounded-full transition-all ${
-              atLimit ? 'bg-red-500' : usagePercent >= 80 ? 'bg-amber-400' : 'bg-emerald-500'
+              atLimit ? 'bg-red-500' : usagePercent >= 80 ? 'bg-amber-400' : 'bg-violet-600'
             }`}
             style={{ width: `${usagePercent}%` }}
           />
@@ -79,51 +74,62 @@ export default async function ClientesPage() {
       </div>
 
       {clients.length === 0 ? (
-        <div className="text-center py-16 text-neutral-400">
+        <div className="text-center py-16 text-slate-500">
           <p className="text-sm">Nenhum cliente ainda. Clique em &quot;Novo cliente&quot; para começar.</p>
         </div>
       ) : (
-        <div className="border border-neutral-200 rounded-lg overflow-hidden">
+        <div className="border border-slate-800 rounded-lg overflow-hidden bg-slate-900">
           <Table>
             <TableHeader>
-              <TableRow className="bg-neutral-50">
-                <TableHead className="text-xs">Nome</TableHead>
-                <TableHead className="text-xs">Status</TableHead>
-                <TableHead className="text-xs">Integrações</TableHead>
-                <TableHead className="text-xs">Criado</TableHead>
+              <TableRow className="bg-slate-800 border-slate-700 hover:bg-slate-800">
+                <TableHead className="text-xs text-slate-400">Nome</TableHead>
+                <TableHead className="text-xs text-slate-400">Status</TableHead>
+                <TableHead className="text-xs text-slate-400">Integrações</TableHead>
+                <TableHead className="text-xs text-slate-400">Criado</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {clients.map((client) => (
-                <TableRow key={client.id} className="hover:bg-neutral-50">
+                <TableRow key={client.id} className="border-slate-800 hover:bg-slate-800/60">
                   <TableCell>
                     <Link
                       href={`/dashboard/clientes/${client.id}`}
-                      className="font-medium text-neutral-900 hover:underline"
+                      className="font-medium text-white hover:text-violet-300 transition-colors"
                     >
                       {client.name}
                     </Link>
-                    <p className="text-xs text-neutral-400">{client.email}</p>
+                    <p className="text-xs text-slate-500">{client.email}</p>
                   </TableCell>
                   <TableCell>
-                    <Badge variant={statusVariant[client.status] ?? 'outline'} className="text-xs">
+                    <Badge
+                      variant={client.status === 'ACTIVE' ? 'default' : 'secondary'}
+                      className={`text-xs ${
+                        client.status === 'ACTIVE'
+                          ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/20'
+                          : 'bg-slate-700 text-slate-400 border-slate-600 hover:bg-slate-700'
+                      }`}
+                    >
                       {client.status === 'ACTIVE' ? 'Ativo' : 'Inativo'}
                     </Badge>
                   </TableCell>
                   <TableCell>
                     {client.integrations.length === 0 ? (
-                      <span className="text-xs text-neutral-400">Nenhuma</span>
+                      <span className="text-xs text-slate-500">Nenhuma</span>
                     ) : (
                       <div className="flex gap-1 flex-wrap">
                         {client.integrations.map((int) => (
-                          <Badge key={int.platform} variant="outline" className="text-xs">
+                          <Badge
+                            key={int.platform}
+                            variant="outline"
+                            className="text-xs border-slate-700 text-slate-300 bg-slate-800"
+                          >
                             {platformLabels[int.platform] ?? int.platform}
                           </Badge>
                         ))}
                       </div>
                     )}
                   </TableCell>
-                  <TableCell className="text-xs text-neutral-400">
+                  <TableCell className="text-xs text-slate-500">
                     {formatDistanceToNow(client.createdAt)}
                   </TableCell>
                 </TableRow>
