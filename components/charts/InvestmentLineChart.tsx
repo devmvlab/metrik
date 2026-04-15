@@ -61,7 +61,7 @@ export function InvestmentLineChart({ data }: InvestmentLineChartProps) {
           tick={{ fontSize: 11, fill: '#9ca3af' }}
           tickLine={false}
           axisLine={false}
-          tickFormatter={(v) => `R$${(v / 1000).toFixed(1)}k`}
+          tickFormatter={(v) => v >= 1000 ? `R$${(v / 1000).toFixed(1)}k` : `R$${v}`}
         />
         <YAxis
           yAxisId="conversions"

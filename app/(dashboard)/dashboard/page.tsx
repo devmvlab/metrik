@@ -36,7 +36,7 @@ export default async function DashboardPage() {
       id: 'whitelabel',
       label: 'Personalizar white-label',
       description: 'Configure logo e cores da sua marca.',
-      done: Boolean(agency?.whiteLabelConfig?.logoUrl),
+      done: Boolean(agency?.whiteLabelConfig?.logoUrl) || Boolean(agency?.whiteLabelConfig?.primaryColor),
       href: '/dashboard/configuracoes',
     },
   ]

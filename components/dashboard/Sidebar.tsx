@@ -26,7 +26,7 @@ export default async function Sidebar() {
   const pathname = headers().get('x-pathname') ?? ''
 
   return (
-    <aside className="w-56 shrink-0 flex flex-col h-full border-r border-neutral-200 bg-white">
+    <aside className="hidden md:flex w-56 shrink-0 flex-col h-full border-r border-neutral-200 bg-white">
       {/* Logo */}
       <div className="px-4 py-5 border-b border-neutral-200">
         <Link href="/dashboard">

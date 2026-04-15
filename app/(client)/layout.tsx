@@ -11,11 +11,15 @@ export default async function ClientLayout({ children }: { children: React.React
   const agencyName = agency?.name ?? 'Dashboard'
 
   // Converte hex para componentes RGB para permitir rgba() nos componentes
-  const hex = primaryColor.replace('#', '')
+  // Normaliza hex curto (#RGB → #RRGGBB) antes de fazer o parse
+  const rawHex = primaryColor.replace('#', '')
+  const hex = rawHex.length === 3
+    ? rawHex.split('').map((c) => c + c).join('')
+    : rawHex
   const r = parseInt(hex.slice(0, 2), 16)
   const g = parseInt(hex.slice(2, 4), 16)
   const b = parseInt(hex.slice(4, 6), 16)
-  const primaryRgb = `${r}, ${g}, ${b}`
+  const primaryRgb = [r, g, b].some(isNaN) ? '37, 99, 235' : `${r}, ${g}, ${b}`
 
   return (
     <>

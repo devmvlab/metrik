@@ -98,10 +98,10 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(url)
     }
 
-    // Se já tem agency_id, o onboarding já foi concluído
+    // Se já tem role, o onboarding já foi concluído — redirecionar para a área correta
     if (role) {
       const url = request.nextUrl.clone()
-      url.pathname = '/dashboard'
+      url.pathname = role === 'CLIENT_VIEWER' ? '/client' : '/dashboard'
       return NextResponse.redirect(url)
     }
   }
