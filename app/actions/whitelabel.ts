@@ -12,6 +12,11 @@ const whitelabelSchema = z.object({
     .regex(/^#[0-9a-fA-F]{6}$/, 'Cor inválida. Use o formato #RRGGBB.')
     .optional()
     .or(z.literal('')),
+  secondaryColor: z
+    .string()
+    .regex(/^#[0-9a-fA-F]{6}$/, 'Cor secundária inválida. Use o formato #RRGGBB.')
+    .optional()
+    .or(z.literal('')),
   logoUrl: z.url('URL inválida').optional().or(z.literal('')),
 })
 
@@ -63,6 +68,7 @@ export async function updateWhitelabel(formData: FormData): Promise<WhitelabelRe
   const rawLogoUrl = logoUrl ?? (formData.get('logoUrl') as string | null)
   const parsed = whitelabelSchema.safeParse({
     primaryColor: formData.get('primaryColor') as string,
+    secondaryColor: formData.get('secondaryColor') as string,
     logoUrl: rawLogoUrl !== null ? rawLogoUrl : undefined,
   })
 
@@ -80,11 +86,15 @@ export async function updateWhitelabel(formData: FormData): Promise<WhitelabelRe
       create: {
         agencyId: session.agencyId,
         primaryColor: parsed.data.primaryColor || null,
+        secondaryColor: parsed.data.secondaryColor || null,
         logoUrl: parsed.data.logoUrl || null,
       },
       update: {
         ...(parsed.data.primaryColor !== undefined && {
           primaryColor: parsed.data.primaryColor || null,
+        }),
+        ...(parsed.data.secondaryColor !== undefined && {
+          secondaryColor: parsed.data.secondaryColor || null,
         }),
         ...(parsed.data.logoUrl !== undefined && {
           logoUrl: parsed.data.logoUrl || null,
