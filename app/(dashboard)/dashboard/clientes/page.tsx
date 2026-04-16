@@ -1,3 +1,4 @@
+import type React from 'react'
 import Link from 'next/link'
 import { requireAgencyAdmin } from '@/lib/auth/session'
 import { getClientsByAgency } from '@/lib/db/clients'
@@ -12,8 +13,15 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
+import { MetaAdsIcon, GoogleAdsIcon, GA4Icon } from '@/components/brand-icons'
 import { NewClientModal } from './NewClientModal'
 import { formatDistanceToNow } from './utils'
+
+const platformIcons: Record<string, React.ReactNode> = {
+  META_ADS: <MetaAdsIcon className="w-5 h-5" />,
+  GOOGLE_ADS: <GoogleAdsIcon className="w-5 h-5" />,
+  GA4: <GA4Icon className="w-5 h-5" />,
+}
 
 const platformLabels: Record<string, string> = {
   META_ADS: 'Meta Ads',
@@ -116,15 +124,17 @@ export default async function ClientesPage() {
                     {client.integrations.length === 0 ? (
                       <span className="text-xs text-slate-500">Nenhuma</span>
                     ) : (
-                      <div className="flex gap-1 flex-wrap">
+                      <div className="flex items-center gap-2">
                         {client.integrations.map((int) => (
-                          <Badge
+                          <div
                             key={int.platform}
-                            variant="outline"
-                            className="text-xs border-slate-700 text-slate-300 bg-slate-800"
+                            title={platformLabels[int.platform] ?? int.platform}
+                            className="shrink-0"
                           >
-                            {platformLabels[int.platform] ?? int.platform}
-                          </Badge>
+                            {platformIcons[int.platform] ?? (
+                              <span className="text-xs text-slate-400">{int.platform}</span>
+                            )}
+                          </div>
                         ))}
                       </div>
                     )}

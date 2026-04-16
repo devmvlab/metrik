@@ -1,8 +1,10 @@
+import type React from 'react'
 import Link from 'next/link'
 import type { Plan } from '@prisma/client'
 import { requireAgencyAdmin } from '@/lib/auth/session'
 import { getAgencyById, getAgencyStats } from '@/lib/db/agencies'
 import { getPlanLimit, PLAN_LABELS } from '@/lib/billing/plans'
+import { MetaAdsIcon, GoogleAdsIcon, GA4Icon } from '@/components/brand-icons'
 import OnboardingChecklist from '@/components/dashboard/OnboardingChecklist'
 import { TrialBanner } from '@/components/dashboard/TrialBanner'
 import { Card } from '@/components/ui/card'
@@ -24,10 +26,10 @@ const PLATFORM_LABELS: Record<string, string> = {
   GA4: 'GA4',
 }
 
-const PLATFORM_COLORS: Record<string, string> = {
-  META_ADS: 'bg-blue-500/20 text-blue-300',
-  GOOGLE_ADS: 'bg-green-500/20 text-green-300',
-  GA4: 'bg-orange-500/20 text-orange-300',
+const PLATFORM_ICONS: Record<string, React.ReactNode> = {
+  META_ADS: <MetaAdsIcon className="w-4 h-4" />,
+  GOOGLE_ADS: <GoogleAdsIcon className="w-4 h-4" />,
+  GA4: <GA4Icon className="w-4 h-4" />,
 }
 
 export default async function DashboardPage() {
@@ -229,17 +231,20 @@ const checklistItems = [
                   {/* Nome + status */}
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-white truncate">{client.name}</p>
-                    <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                    <div className="flex items-center gap-1.5 mt-0.5">
                       {connected.length === 0 && !hasIssue && (
                         <span className="text-xs text-slate-500">Sem integrações</span>
                       )}
                       {connected.map((i) => (
-                        <span
+                        <div
                           key={i.platform}
-                          className={`text-xs px-1.5 py-0.5 rounded font-medium ${PLATFORM_COLORS[i.platform] ?? 'bg-slate-700 text-slate-300'}`}
+                          title={PLATFORM_LABELS[i.platform] ?? i.platform}
+                          className="shrink-0"
                         >
-                          {PLATFORM_LABELS[i.platform] ?? i.platform}
-                        </span>
+                          {PLATFORM_ICONS[i.platform] ?? (
+                            <span className="text-xs text-slate-400">{i.platform}</span>
+                          )}
+                        </div>
                       ))}
                     </div>
                   </div>

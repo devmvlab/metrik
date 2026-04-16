@@ -33,7 +33,11 @@ export default async function ClientDashboardPreviewPage({
   const { start, end } = resolveDateRange(period, searchParams.from, searchParams.to)
   const data = await getDashboardData(client.id, session.agencyId, start, end)
 
-  const primaryColor = agency?.whiteLabelConfig?.primaryColor ?? '#2563eb'
+  const HEX_RE = /^#[0-9a-fA-F]{6}$/
+  const rawPrimary = agency?.whiteLabelConfig?.primaryColor ?? ''
+  const primaryColor = HEX_RE.test(rawPrimary) ? rawPrimary : '#2563eb'
+  const rawSecondary = agency?.whiteLabelConfig?.secondaryColor ?? ''
+  const secondaryColor = HEX_RE.test(rawSecondary) ? rawSecondary : primaryColor
   const logoUrl = agency?.whiteLabelConfig?.logoUrl ?? null
   const agencyName = agency?.name ?? 'Dashboard'
 
@@ -41,15 +45,16 @@ export default async function ClientDashboardPreviewPage({
   const r = parseInt(hex.slice(0, 2), 16)
   const g = parseInt(hex.slice(2, 4), 16)
   const b = parseInt(hex.slice(4, 6), 16)
-  const primaryRgb = `${r}, ${g}, ${b}`
+  const primaryRgb = [r, g, b].some(isNaN) ? '37, 99, 235' : `${r}, ${g}, ${b}`
 
   return (
     <div className="min-h-screen bg-neutral-50">
-      {/* Injeta cor primária e variante RGB como CSS variables */}
+      {/* Injeta CSS variables de cor para uso nos componentes do dashboard do cliente */}
       <style>{`
         :root {
           --agency-primary: ${primaryColor};
           --agency-primary-rgb: ${primaryRgb};
+          --agency-secondary: ${secondaryColor};
         }
       `}</style>
 

@@ -1,9 +1,11 @@
+import type React from 'react'
+import { MetaAdsIcon, GoogleAdsIcon, GA4Icon } from '@/components/brand-icons'
 import { UnifiedCampaign } from '@/lib/dashboard/aggregator'
 
-const PLATFORM_COLORS: Record<string, string> = {
-  META_ADS: 'bg-blue-100 text-blue-700',
-  GOOGLE_ADS: 'bg-green-100 text-green-700',
-  GA4: 'bg-orange-100 text-orange-700',
+const PLATFORM_ICONS: Record<string, React.ReactNode> = {
+  META_ADS: <MetaAdsIcon className="w-4 h-4 shrink-0" />,
+  GOOGLE_ADS: <GoogleAdsIcon className="w-4 h-4 shrink-0" />,
+  GA4: <GA4Icon className="w-4 h-4 shrink-0" />,
 }
 
 function fmt(n: number, style: 'currency' | 'percent' | 'decimal' = 'decimal', decimals = 0): string {
@@ -49,9 +51,11 @@ export function CampaignTable({ campaigns }: CampaignTableProps) {
             <tr key={`${campaign.platform}-${campaign.campaignId}`} className="hover:bg-neutral-50 transition-colors">
               <td className="py-3 px-4">
                 <div className="flex items-center gap-2">
-                  <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium ${PLATFORM_COLORS[campaign.platform] ?? 'bg-neutral-100 text-neutral-600'}`}>
-                    {campaign.platformLabel}
-                  </span>
+                  <div title={campaign.platformLabel}>
+                    {PLATFORM_ICONS[campaign.platform] ?? (
+                      <span className="text-[10px] font-medium text-neutral-500">{campaign.platformLabel}</span>
+                    )}
+                  </div>
                   <span className="text-neutral-900 font-medium truncate max-w-[200px]" title={campaign.campaignName}>
                     {campaign.campaignName}
                   </span>
