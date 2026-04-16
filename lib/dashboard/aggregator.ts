@@ -6,6 +6,7 @@ import { getGA4Metrics } from '@/lib/integrations/ga4/data'
 import { getMetaDailyData } from '@/lib/integrations/meta/daily'
 import { getGoogleAdsDailyData } from '@/lib/integrations/google-ads/daily'
 import { getGA4DailyData } from '@/lib/integrations/ga4/daily'
+import { getMockDashboardData } from '@/lib/dashboard/mock'
 import { eachDayOfInterval, format } from 'date-fns'
 
 // ---------------------------------------------------------------------------
@@ -74,6 +75,10 @@ export async function getDashboardData(
   periodStart: Date,
   periodEnd: Date
 ): Promise<DashboardData> {
+  if (process.env.MOCK_DASHBOARD_DATA === 'true') {
+    return getMockDashboardData(periodStart, periodEnd)
+  }
+
   // Busca as integrações conectadas do cliente (valida agencyId via relação)
   const integrations = await db.integration.findMany({
     where: {

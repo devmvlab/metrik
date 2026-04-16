@@ -21,7 +21,7 @@ const whitelabelSchema = z.object({
 })
 
 type WhitelabelResult =
-  | { success: true; message: string }
+  | { success: true; message: string; logoUrl?: string }
   | { success: false; error: string; code: string }
 
 export async function updateWhitelabel(formData: FormData): Promise<WhitelabelResult> {
@@ -46,7 +46,7 @@ export async function updateWhitelabel(formData: FormData): Promise<WhitelabelRe
     }
 
     const ext = logoFile.name.split('.').pop() ?? 'png'
-    const path = `logos/${session.agencyId}/logo.${ext}`
+    const path = `logos/${session.agencyId}/logo-${Date.now()}.${ext}`
 
     const supabase = createAdminClient()
     const { error: uploadError } = await supabase.storage
@@ -106,7 +106,11 @@ export async function updateWhitelabel(formData: FormData): Promise<WhitelabelRe
     revalidatePath('/dashboard/configuracoes')
     revalidatePath('/client', 'layout')
 
-    return { success: true, message: 'Configurações salvas com sucesso.' }
+    return {
+      success: true,
+      message: 'Configurações salvas com sucesso.',
+      logoUrl: parsed.data.logoUrl || undefined,
+    }
   } catch {
     return { success: false, error: 'Erro ao salvar configurações.', code: 'INTERNAL_ERROR' }
   }

@@ -8,6 +8,7 @@ import { parsePeriod, resolveDateRange } from '@/lib/dashboard/periods'
 import { db } from '@/lib/db'
 import { getAgencyById } from '@/lib/db/agencies'
 import { DashboardContent } from '@/components/dashboard/DashboardContent'
+import { PrintButton } from '@/components/dashboard/PrintButton'
 import { Button } from '@/components/ui/button'
 
 export default async function ClientDashboardPreviewPage({
@@ -104,6 +105,7 @@ export default async function ClientDashboardPreviewPage({
           start={start}
           end={end}
           data={data}
+          headerSlot={<PrintButton />}
         />
       </div>
     </div>

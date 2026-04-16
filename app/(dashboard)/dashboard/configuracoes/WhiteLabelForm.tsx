@@ -101,6 +101,11 @@ export function WhiteLabelForm({
     startTransition(async () => {
       const res = await updateWhitelabel(formData)
       setResult(res)
+      if (res.success) {
+        setLogoFile(null)
+        if (res.logoUrl) setLogoPreview(res.logoUrl)
+        else if (!logoPreview) setLogoPreview(null)
+      }
     })
   }
 
