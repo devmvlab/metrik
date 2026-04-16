@@ -110,7 +110,8 @@ export function PeriodSelector({ current }: PeriodSelectorProps) {
           <button
             onClick={handleApplyCustom}
             disabled={!canApply}
-            className="mt-3 w-full py-1.5 text-xs font-medium bg-neutral-900 text-white rounded-md hover:bg-neutral-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            className="mt-3 w-full py-1.5 text-xs font-medium text-white rounded-md disabled:opacity-40 disabled:cursor-not-allowed transition-opacity"
+            style={{ backgroundColor: 'var(--agency-secondary)' }}
           >
             Aplicar
           </button>
