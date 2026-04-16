@@ -9,6 +9,7 @@ export default async function ClientLayout({ children }: { children: React.React
   const primaryColor = agency?.whiteLabelConfig?.primaryColor ?? '#2563eb'
   const logoUrl = agency?.whiteLabelConfig?.logoUrl ?? null
   const agencyName = agency?.name ?? 'Dashboard'
+  const secondaryColor = agency?.whiteLabelConfig?.secondaryColor ?? primaryColor
 
   // Converte hex para componentes RGB para permitir rgba() nos componentes
   // Normaliza hex curto (#RGB → #RRGGBB) antes de fazer o parse
@@ -28,6 +29,7 @@ export default async function ClientLayout({ children }: { children: React.React
         :root {
           --agency-primary: ${primaryColor};
           --agency-primary-rgb: ${primaryRgb};
+          --agency-secondary: ${secondaryColor};
         }
       `}</style>
 
