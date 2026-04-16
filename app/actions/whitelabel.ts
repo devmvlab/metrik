@@ -104,7 +104,7 @@ export async function updateWhitelabel(formData: FormData): Promise<WhitelabelRe
 
     revalidatePath('/dashboard')
     revalidatePath('/dashboard/configuracoes')
-    revalidatePath('/client')
+    revalidatePath('/client', 'layout')
 
     return { success: true, message: 'Configurações salvas com sucesso.' }
   } catch {

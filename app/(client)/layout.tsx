@@ -6,10 +6,13 @@ export default async function ClientLayout({ children }: { children: React.React
   const session = await requireClientViewer()
   const agency = await getAgencyById(session.agencyId)
 
-  const primaryColor = agency?.whiteLabelConfig?.primaryColor ?? '#2563eb'
+  const HEX_RE = /^#[0-9a-fA-F]{6}$/
+  const rawPrimary = agency?.whiteLabelConfig?.primaryColor ?? ''
+  const primaryColor = HEX_RE.test(rawPrimary) ? rawPrimary : '#2563eb'
   const logoUrl = agency?.whiteLabelConfig?.logoUrl ?? null
   const agencyName = agency?.name ?? 'Dashboard'
-  const secondaryColor = agency?.whiteLabelConfig?.secondaryColor ?? primaryColor
+  const rawSecondary = agency?.whiteLabelConfig?.secondaryColor ?? ''
+  const secondaryColor = HEX_RE.test(rawSecondary) ? rawSecondary : primaryColor
 
   // Converte hex para componentes RGB para permitir rgba() nos componentes
   // Normaliza hex curto (#RGB → #RRGGBB) antes de fazer o parse
