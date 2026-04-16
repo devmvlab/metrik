@@ -24,7 +24,7 @@ export default async function ClientLayout({ children }: { children: React.React
 
   return (
     <>
-      {/* Injeta cor primária e variante RGB como CSS variables */}
+      {/* Injeta CSS variables de cor para uso nos componentes do dashboard do cliente */}
       <style>{`
         :root {
           --agency-primary: ${primaryColor};
