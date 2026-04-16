@@ -27,7 +27,7 @@ export function WhiteLabelForm({
 
   const [logoPreview, setLogoPreview] = useState<string | null>(initialLogoUrl)
   const [primaryColor, setPrimaryColor] = useState(initialPrimaryColor ?? '#2563eb')
-  const [secondaryColor, setSecondaryColor] = useState(initialSecondaryColor ?? '#2563eb')
+  const [secondaryColor, setSecondaryColor] = useState(initialSecondaryColor ?? initialPrimaryColor ?? '#2563eb')
   const [logoFile, setLogoFile] = useState<File | null>(null)
 
   const fileInputRef = useRef<HTMLInputElement>(null)
