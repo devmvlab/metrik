@@ -18,6 +18,7 @@ export default async function ConfiguracoesPage() {
       <WhiteLabelForm
         initialLogoUrl={agency?.whiteLabelConfig?.logoUrl ?? null}
         initialPrimaryColor={agency?.whiteLabelConfig?.primaryColor ?? null}
+        initialSecondaryColor={agency?.whiteLabelConfig?.secondaryColor ?? null}
         agencyName={agency?.name ?? 'Sua agência'}
       />
     </div>
