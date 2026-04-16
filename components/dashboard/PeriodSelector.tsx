@@ -60,9 +60,10 @@ export function PeriodSelector({ current }: PeriodSelectorProps) {
             onClick={() => handlePresetChange(preset)}
             className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
               current === preset
-                ? 'bg-white text-neutral-900 shadow-sm'
+                ? 'shadow-sm text-white'
                 : 'text-neutral-500 hover:text-neutral-700'
             }`}
+            style={current === preset ? { backgroundColor: 'var(--agency-secondary)' } : undefined}
           >
             {PERIOD_LABELS[preset]}
           </button>
@@ -71,9 +72,10 @@ export function PeriodSelector({ current }: PeriodSelectorProps) {
           onClick={() => setShowPicker((v) => !v)}
           className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex items-center gap-1.5 ${
             current === 'custom'
-              ? 'bg-white text-neutral-900 shadow-sm'
+              ? 'shadow-sm text-white'
               : 'text-neutral-500 hover:text-neutral-700'
           }`}
+          style={current === 'custom' ? { backgroundColor: 'var(--agency-secondary)' } : undefined}
         >
           <Calendar className="w-3 h-3" />
           {current === 'custom' ? 'Personalizado' : 'Personalizar'}
