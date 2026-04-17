@@ -3,7 +3,7 @@ import Link from 'next/link'
 import type { Plan } from '@prisma/client'
 import { requireAgencyAdmin } from '@/lib/auth/session'
 import { getAgencyById, getAgencyStats } from '@/lib/db/agencies'
-import { getPlanLimit, PLAN_LABELS } from '@/lib/billing/plans'
+import { getPlanLimit, getDisplayPlanLabel } from '@/lib/billing/plans'
 import { MetaAdsIcon, GoogleAdsIcon, GA4Icon } from '@/components/brand-icons'
 import OnboardingChecklist from '@/components/dashboard/OnboardingChecklist'
 import { TrialBanner } from '@/components/dashboard/TrialBanner'
@@ -41,7 +41,11 @@ export default async function DashboardPage() {
 
   const planLimit = getPlanLimit(stats.plan as Plan)
   const planUsagePct = Math.min((stats.totalClients / planLimit) * 100, 100)
-  const planLabel = PLAN_LABELS[stats.plan as Plan] ?? stats.plan
+  const planLabel = getDisplayPlanLabel({
+    plan: stats.plan as Plan,
+    stripeSubscriptionStatus: stats.stripeSubscriptionStatus,
+    trialEndsAt: stats.trialEndsAt,
+  })
 
   const planBarColor =
     planUsagePct >= 90 ? 'bg-red-500' : planUsagePct >= 70 ? 'bg-amber-400' : 'bg-violet-600'

@@ -2,18 +2,22 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Users, Settings, CreditCard } from 'lucide-react'
+import { LayoutDashboard, Users, Settings, CreditCard, Lock } from 'lucide-react'
 import { MetrikLogo } from '@/components/marketing/MetrikLogo'
 import { LogoutButton } from '@/components/dashboard/LogoutButton'
 
 const navItems = [
-  { href: '/dashboard', label: 'Visão geral', icon: LayoutDashboard, exact: true },
-  { href: '/dashboard/clientes', label: 'Clientes', icon: Users, exact: false },
-  { href: '/dashboard/configuracoes', label: 'Config.', icon: Settings, exact: false },
-  { href: '/dashboard/billing', label: 'Plano', icon: CreditCard, exact: false },
+  { href: '/dashboard', label: 'Visão geral', icon: LayoutDashboard, exact: true, lockable: true },
+  { href: '/dashboard/clientes', label: 'Clientes', icon: Users, exact: false, lockable: true },
+  { href: '/dashboard/configuracoes', label: 'Config.', icon: Settings, exact: false, lockable: true },
+  { href: '/dashboard/billing', label: 'Plano', icon: CreditCard, exact: false, lockable: false },
 ]
 
-export default function MobileHeader() {
+interface MobileHeaderProps {
+  restricted?: boolean
+}
+
+export default function MobileHeader({ restricted = false }: MobileHeaderProps) {
   const pathname = usePathname()
 
   return (
@@ -28,8 +32,24 @@ export default function MobileHeader() {
 
       {/* Nav links — horizontal scroll */}
       <nav className="flex overflow-x-auto px-3 pb-2 gap-1 scrollbar-none">
-        {navItems.map(({ href, label, icon: Icon, exact }) => {
+        {navItems.map(({ href, label, icon: Icon, exact, lockable }) => {
           const isActive = exact ? pathname === href : pathname.startsWith(href)
+          const isLocked = restricted && lockable
+
+          if (isLocked) {
+            return (
+              <span
+                key={href}
+                title="Ative um plano para acessar"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm whitespace-nowrap cursor-not-allowed select-none text-slate-600 shrink-0"
+              >
+                <Icon className="w-3.5 h-3.5 shrink-0 text-slate-700" />
+                {label}
+                <Lock className="w-3 h-3 shrink-0 text-slate-700" />
+              </span>
+            )
+          }
+
           return (
             <Link
               key={href}

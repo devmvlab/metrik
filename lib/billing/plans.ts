@@ -40,6 +40,30 @@ export function getStripePriceId(plan: Plan): string {
 }
 
 /**
+ * Retorna o label correto considerando o estado atual da conta.
+ * Mostra "Trial Gratuito" quando não há assinatura Stripe e o trial ainda está ativo.
+ */
+export function getDisplayPlanLabel(agency: {
+  plan: Plan
+  stripeSubscriptionStatus: string | null
+  trialEndsAt: Date | null
+}): string {
+  const hasStripeSubscription =
+    agency.stripeSubscriptionStatus === 'active' ||
+    agency.stripeSubscriptionStatus === 'trialing' ||
+    agency.stripeSubscriptionStatus === 'incomplete' ||
+    agency.stripeSubscriptionStatus === 'past_due'
+
+  const isInTrial =
+    !hasStripeSubscription &&
+    agency.trialEndsAt != null &&
+    new Date(agency.trialEndsAt) > new Date()
+
+  if (isInTrial) return 'Trial Gratuito'
+  return PLAN_LABELS[agency.plan] ?? agency.plan
+}
+
+/**
  * Mapeia um Stripe Price ID de volta para o plano correspondente.
  * Retorna null se o priceId não corresponder a nenhum plano configurado.
  */

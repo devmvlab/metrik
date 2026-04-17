@@ -1,10 +1,9 @@
-import { redirect } from 'next/navigation'
 import { requireAgencyAdmin } from '@/lib/auth/session'
 import { db } from '@/lib/db'
 import Sidebar from '@/components/dashboard/Sidebar'
 import MobileHeader from '@/components/dashboard/MobileHeader'
 
-export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default async function BillingLayout({ children }: { children: React.ReactNode }) {
   const session = await requireAgencyAdmin()
 
   const agency = await db.agency.findUnique({
@@ -22,18 +21,14 @@ export default async function DashboardLayout({ children }: { children: React.Re
     agency?.trialEndsAt != null &&
     new Date(agency.trialEndsAt) < new Date()
 
-  if (trialExpired) {
-    redirect('/dashboard/billing')
-  }
-
-  // Usuários past_due chegam aqui (não são redirecionados), mas ficam com menu restrito
   const isPastDue = agency?.stripeSubscriptionStatus === 'past_due'
+  const isRestricted = trialExpired || isPastDue
 
   return (
     <div className="flex h-screen overflow-hidden bg-slate-950">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <MobileHeader restricted={isPastDue} />
+        <MobileHeader restricted={isRestricted} />
         <main className="flex-1 overflow-y-auto">
           <div className="max-w-5xl mx-auto px-6 py-8">{children}</div>
         </main>

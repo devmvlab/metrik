@@ -4,16 +4,31 @@ import { getAgencyById } from '@/lib/db/agencies'
 import { MetrikLogo } from '@/components/marketing/MetrikLogo'
 import { LogoutButton } from '@/components/dashboard/LogoutButton'
 import { SidebarNav } from '@/components/dashboard/SidebarNav'
+import { getDisplayPlanLabel } from '@/lib/billing/plans'
 
-const planLabels: Record<string, string> = {
-  STARTER: 'Starter',
-  PRO: 'Pro',
-  AGENCY: 'Agency',
+function computeIsRestricted(agency: {
+  trialEndsAt: Date | null
+  stripeSubscriptionStatus: string | null
+} | null): boolean {
+  if (!agency) return false
+
+  const hasActiveSubscription =
+    agency.stripeSubscriptionStatus === 'active' ||
+    agency.stripeSubscriptionStatus === 'trialing' ||
+    agency.stripeSubscriptionStatus === 'incomplete'
+
+  const trialExpired =
+    !hasActiveSubscription &&
+    agency.trialEndsAt != null &&
+    new Date(agency.trialEndsAt) < new Date()
+
+  return trialExpired || agency.stripeSubscriptionStatus === 'past_due'
 }
 
 export default async function Sidebar() {
   const session = await getSession()
   const agency = session ? await getAgencyById(session.agencyId) : null
+  const isRestricted = computeIsRestricted(agency)
 
   return (
     <aside className="hidden md:flex w-56 shrink-0 flex-col h-full border-r border-slate-800 bg-slate-900">
@@ -24,8 +39,7 @@ export default async function Sidebar() {
         </Link>
       </div>
 
-      {/* Navegação — Client Component com usePathname() */}
-      <SidebarNav />
+      <SidebarNav isRestricted={isRestricted} />
 
       {/* Footer — agência + plano + logout */}
       <div className="border-t border-slate-800">
@@ -41,7 +55,7 @@ export default async function Sidebar() {
             <div className="flex-1 min-w-0">
               <p className="text-xs font-medium text-slate-200 truncate">{agency.name}</p>
               <span className="text-xs text-violet-400 font-medium">
-                {planLabels[agency.plan] ?? agency.plan}
+                {getDisplayPlanLabel(agency)}
               </span>
             </div>
           </div>
