@@ -8,6 +8,8 @@ import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { MetaAdsIcon, GoogleAdsIcon, GA4Icon } from '@/components/brand-icons'
+import { ClientActions } from '@/components/dashboard/ClientActions'
+import { ResendInviteButton } from '@/components/dashboard/ResendInviteButton'
 import {
   CheckCircle2,
   AlertCircle,
@@ -147,16 +149,19 @@ export default async function ClientDetailPage({
           <h1 className="text-xl font-semibold text-white leading-tight">{client.name}</h1>
           <p className="text-sm text-slate-400 truncate">{client.email}</p>
         </div>
-        <Badge
-          variant={client.status === 'ACTIVE' ? 'default' : 'secondary'}
-          className={
-            client.status === 'ACTIVE'
-              ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/20'
-              : 'bg-slate-700 text-slate-400 border-slate-600'
-          }
-        >
-          {client.status === 'ACTIVE' ? 'Ativo' : 'Inativo'}
-        </Badge>
+        <div className="flex items-center gap-3 shrink-0">
+          <Badge
+            variant={client.status === 'ACTIVE' ? 'default' : 'secondary'}
+            className={
+              client.status === 'ACTIVE'
+                ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/20'
+                : 'bg-slate-700 text-slate-400 border-slate-600'
+            }
+          >
+            {client.status === 'ACTIVE' ? 'Ativo' : 'Inativo'}
+          </Badge>
+          <ClientActions clientId={client.id} currentStatus={client.status} />
+        </div>
       </div>
 
       {/* Feedback de callback OAuth */}
@@ -261,6 +266,7 @@ export default async function ClientDetailPage({
                       <p className="text-xs text-slate-500">{user.email}</p>
                     </div>
                   </div>
+                  <ResendInviteButton clientId={client.id} />
                 </div>
               ))}
             </div>
@@ -275,6 +281,7 @@ export default async function ClientDetailPage({
                 <p className="text-sm font-medium text-slate-300">Nenhum acesso configurado</p>
                 <p className="text-xs text-slate-500 mt-1">Convide o cliente para acessar o dashboard</p>
               </div>
+              <ResendInviteButton clientId={client.id} />
             </div>
           </Card>
         )}

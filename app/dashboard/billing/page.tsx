@@ -1,13 +1,15 @@
 import Link from 'next/link'
 import { requireAgencyAdmin } from '@/lib/auth/session'
 import { getAgencyWithPlanUsage } from '@/lib/db/agencies'
-import { PLAN_LABELS, PLAN_LIMITS, PLAN_PRICES } from '@/lib/billing/plans'
+import { PLAN_LABELS, PLAN_LIMITS, PLAN_PRICES, getPlanByPriceId } from '@/lib/billing/plans'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { CheckCircle2, AlertCircle, CheckCircle } from 'lucide-react'
 import { CheckoutButton } from '@/components/billing/CheckoutButton'
 import { ManageSubscriptionButton } from '@/components/billing/ManageSubscriptionButton'
+import { stripe } from '@/lib/billing/stripe'
+import { db } from '@/lib/db'
 import type { Plan } from '@prisma/client'
 
 const PLAN_ORDER: Plan[] = ['STARTER', 'PRO', 'AGENCY']
@@ -82,12 +84,82 @@ function TrialBanner({ trialEndsAt, expired }: { trialEndsAt: Date; expired: boo
   )
 }
 
+/**
+ * Sincroniza o estado da assinatura diretamente do Stripe.
+ * Chamado quando o usuário retorna do checkout com sucesso, como fallback
+ * para o caso do webhook ainda não ter chegado (race condition em dev/prod).
+ */
+async function syncSubscriptionFromStripe(agencyId: string): Promise<void> {
+  try {
+    const agency = await db.agency.findUnique({
+      where: { id: agencyId },
+      select: { stripeSubscriptionId: true, stripeSubscriptionStatus: true },
+    })
+
+    if (!agency) return
+
+    // Se o webhook já atualizou, não faz nada
+    if (
+      agency.stripeSubscriptionId &&
+      (agency.stripeSubscriptionStatus === 'active' || agency.stripeSubscriptionStatus === 'trialing')
+    ) {
+      return
+    }
+
+    // Busca checkout sessions recentes para esta agência via metadata
+    // Necessário porque no primeiro checkout o stripeCustomerId ainda não está no banco
+    const sessions = await stripe.checkout.sessions.list({
+      limit: 5,
+      expand: ['data.subscription'],
+    })
+
+    const completedSession = sessions.data.find(
+      (s) => s.metadata?.agencyId === agencyId && s.payment_status === 'paid',
+    )
+
+    if (!completedSession) return
+
+    const subscription =
+      typeof completedSession.subscription === 'object' ? completedSession.subscription : null
+
+    if (!subscription || subscription.status !== 'active') return
+
+    const customerId =
+      typeof completedSession.customer === 'string'
+        ? completedSession.customer
+        : completedSession.customer?.id
+
+    const priceId = subscription.items.data[0]?.price.id
+    const plan = priceId ? getPlanByPriceId(priceId) : null
+
+    await db.agency.update({
+      where: { id: agencyId },
+      data: {
+        stripeSubscriptionId: subscription.id,
+        stripeSubscriptionStatus: subscription.status,
+        ...(customerId ? { stripeCustomerId: customerId } : {}),
+        ...(plan ? { plan } : {}),
+      },
+    })
+  } catch (err) {
+    // Falha silenciosa — o webhook eventual vai corrigir
+    console.error('[billing] syncSubscriptionFromStripe failed:', err)
+  }
+}
+
 export default async function BillingPage({
   searchParams,
 }: {
   searchParams: { checkout?: string }
 }) {
   const session = await requireAgencyAdmin()
+
+  // Se voltou do checkout com sucesso, sincroniza com Stripe antes de carregar os dados
+  // (fallback para race condition entre redirect e webhook)
+  if (searchParams.checkout === 'success') {
+    await syncSubscriptionFromStripe(session.agencyId)
+  }
+
   const agency = await getAgencyWithPlanUsage(session.agencyId)
 
   if (!agency) return null
@@ -101,6 +173,7 @@ export default async function BillingPage({
   const hasActiveSubscription =
     stripeSubscriptionStatus === 'active' || stripeSubscriptionStatus === 'trialing'
   const isPastDue = stripeSubscriptionStatus === 'past_due'
+  const isIncomplete = stripeSubscriptionStatus === 'incomplete'
   const trialExpired =
     !hasActiveSubscription && trialEndsAt != null && new Date(trialEndsAt) < new Date()
   const onTrial = !stripeCustomerId && trialEndsAt != null && new Date(trialEndsAt) >= new Date()
@@ -137,6 +210,23 @@ export default async function BillingPage({
       {/* Banner de trial */}
       {(onTrial || trialExpired) && trialEndsAt && (
         <TrialBanner trialEndsAt={trialEndsAt} expired={trialExpired} />
+      )}
+
+      {/* Aviso de pagamento incompleto (ex: 3D Secure pendente) */}
+      {isIncomplete && (
+        <div className="mb-6 flex items-start gap-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
+          <div className="flex-1">
+            <p className="text-sm font-medium text-amber-300">Pagamento pendente</p>
+            <p className="text-sm text-amber-400">
+              Seu pagamento está aguardando confirmação (ex: autenticação 3D Secure). Acesse o
+              portal para concluir.
+            </p>
+          </div>
+          <div className="ml-auto shrink-0">
+            <ManageSubscriptionButton />
+          </div>
+        </div>
       )}
 
       {/* Aviso de pagamento em atraso */}
