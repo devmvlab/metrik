@@ -19,7 +19,7 @@ export async function saveCustomDomain(domain: string) {
 
   const parsed = domainSchema.safeParse(domain.trim().toLowerCase())
   if (!parsed.success) {
-    return { success: false as const, error: parsed.error.errors[0]?.message ?? 'Domínio inválido' }
+    return { success: false as const, error: parsed.error.issues[0]?.message ?? 'Domínio inválido' }
   }
 
   const cleanDomain = parsed.data
