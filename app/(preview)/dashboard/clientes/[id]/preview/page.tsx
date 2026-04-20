@@ -9,6 +9,7 @@ import { db } from '@/lib/db'
 import { getAgencyById } from '@/lib/db/agencies'
 import { DashboardContent } from '@/components/dashboard/DashboardContent'
 import { PrintButton } from '@/components/dashboard/PrintButton'
+import { PERIOD_LABELS } from '@/lib/dashboard/periods'
 import { Button } from '@/components/ui/button'
 
 export default async function ClientDashboardPreviewPage({
@@ -105,7 +106,13 @@ export default async function ClientDashboardPreviewPage({
           start={start}
           end={end}
           data={data}
-          headerSlot={<PrintButton />}
+          headerSlot={
+            <PrintButton
+              clientName={client.name}
+              periodLabel={PERIOD_LABELS[period]}
+              dateRange={`${start.toLocaleDateString('pt-BR')} até ${end.toLocaleDateString('pt-BR')}`}
+            />
+          }
         />
       </div>
     </div>

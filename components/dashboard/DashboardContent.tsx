@@ -31,9 +31,9 @@ export function DashboardContent({ clientName, period, start, end, data, headerS
   const { consolidated, platformBreakdown, dailySeries, campaigns } = data
 
   return (
-    <div>
+    <div id="dashboard-export-content">
       {/* Cabeçalho */}
-      <div className="flex items-start justify-between mb-6 print:mb-4">
+      <div id="dashboard-title-section" className="flex items-start justify-between mb-6 print:mb-4">
         <div>
           <h1 className="text-xl font-bold text-neutral-900">{clientName}</h1>
           <p className="text-sm text-neutral-500 mt-0.5">
@@ -41,7 +41,7 @@ export function DashboardContent({ clientName, period, start, end, data, headerS
             {end.toLocaleDateString('pt-BR')}
           </p>
         </div>
-        <div className="flex items-center gap-3 print:hidden">
+        <div id="dashboard-header-controls" className="flex items-center gap-3 print:hidden">
           <Suspense fallback={null}>
             <PeriodSelector current={period} />
           </Suspense>

@@ -5,6 +5,7 @@ import { parsePeriod, resolveDateRange } from '@/lib/dashboard/periods'
 import { db } from '@/lib/db'
 import { DashboardContent } from '@/components/dashboard/DashboardContent'
 import { PrintButton } from '@/components/dashboard/PrintButton'
+import { PERIOD_LABELS } from '@/lib/dashboard/periods'
 import { PlugZap } from 'lucide-react'
 
 export default async function ClientDashboardPage({
@@ -58,7 +59,13 @@ export default async function ClientDashboardPage({
       start={start}
       end={end}
       data={data}
-      headerSlot={<PrintButton />}
+      headerSlot={
+        <PrintButton
+          clientName={client.name}
+          periodLabel={PERIOD_LABELS[period]}
+          dateRange={`${start.toLocaleDateString('pt-BR')} até ${end.toLocaleDateString('pt-BR')}`}
+        />
+      }
     />
   )
 }
