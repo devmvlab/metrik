@@ -1,12 +1,30 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { resolveAgencyFromHost } from '@/lib/db/tenantResolver'
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
+  const host = request.headers.get('host') ?? ''
 
-  // Propaga o pathname para Server Components via header (lido com headers() nos layouts)
   const requestHeaders = new Headers(request.headers)
   requestHeaders.set('x-pathname', pathname)
+
+  // ---------------------------------------------------------------------------
+  // Resolução de tenant por domínio (subdomínio Metrik ou domínio próprio)
+  // Feito antes do auth check para que os headers estejam disponíveis nos layouts.
+  // Para usuários já autenticados em subdomínio, o agencyId vem do JWT —
+  // mas ainda injetamos os dados de white-label para o layout do cliente usá-los.
+  // ---------------------------------------------------------------------------
+  const agencyCtx = await resolveAgencyFromHost(host)
+  if (agencyCtx) {
+    requestHeaders.set('x-agency-id', agencyCtx.id)
+    requestHeaders.set('x-agency-name', agencyCtx.name)
+    requestHeaders.set('x-agency-slug', agencyCtx.slug)
+    requestHeaders.set('x-agency-plan', agencyCtx.plan)
+    if (agencyCtx.logoUrl) requestHeaders.set('x-agency-logo-url', agencyCtx.logoUrl)
+    if (agencyCtx.primaryColor) requestHeaders.set('x-agency-primary-color', agencyCtx.primaryColor)
+    if (agencyCtx.secondaryColor) requestHeaders.set('x-agency-secondary-color', agencyCtx.secondaryColor)
+  }
 
   // Inicializa a resposta padrão com os headers modificados
   let supabaseResponse = NextResponse.next({ request: { headers: requestHeaders } })
@@ -33,7 +51,6 @@ export async function middleware(request: NextRequest) {
   )
 
   // IMPORTANTE: Não insira código entre createServerClient e getUser().
-  // getUser() valida o JWT contra o servidor Supabase e atualiza o token se necessário.
   const {
     data: { user },
   } = await supabase.auth.getUser()
@@ -62,7 +79,6 @@ export async function middleware(request: NextRequest) {
     }
 
     if (role !== 'AGENCY_ADMIN') {
-      // CLIENT_VIEWER tentando acessar o painel da agência
       const url = request.nextUrl.clone()
       url.pathname = '/client'
       return NextResponse.redirect(url)
@@ -80,7 +96,6 @@ export async function middleware(request: NextRequest) {
     }
 
     if (role !== 'CLIENT_VIEWER') {
-      // AGENCY_ADMIN tentando acessar área do cliente
       const url = request.nextUrl.clone()
       url.pathname = '/dashboard'
       return NextResponse.redirect(url)
@@ -89,7 +104,6 @@ export async function middleware(request: NextRequest) {
 
   // ---------------------------------------------------------------------------
   // /onboarding — requer usuário autenticado mas SEM agency_id ainda
-  // (Google OAuth: usuário criado mas agência não configurada)
   // ---------------------------------------------------------------------------
   if (pathname.startsWith('/onboarding')) {
     if (!user) {
@@ -98,7 +112,6 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(url)
     }
 
-    // Se já tem role, o onboarding já foi concluído — redirecionar para a área correta
     if (role) {
       const url = request.nextUrl.clone()
       url.pathname = role === 'CLIENT_VIEWER' ? '/client' : '/dashboard'
@@ -111,7 +124,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Aplica o middleware em todas as rotas, exceto assets estáticos
     '/((?!_next/static|_next/image|favicon\\.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }

@@ -75,7 +75,8 @@ model WhiteLabelConfig {
   logoUrl        String? @map("logo_url")
   primaryColor   String? @map("primary_color")
   secondaryColor String? @map("secondary_color")
-  customDomain   String? @map("custom_domain")
+  customDomain         String?  @map("custom_domain")
+  customDomainVerified Boolean  @default(false) @map("custom_domain_verified")
 
   agency Agency @relation(fields: [agencyId], references: [id], onDelete: Cascade)
 

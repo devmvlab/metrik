@@ -6,6 +6,9 @@ export default async function ConfiguracoesPage() {
   const session = await requireAgencyAdmin()
   const agency = await getAgencyById(session.agencyId)
 
+  const appDomain = process.env.NEXT_PUBLIC_APP_DOMAIN ?? 'app.metrik.com.br'
+  const subdomainUrl = agency?.slug ? `https://${agency.slug}.${appDomain}` : null
+
   return (
     <div>
       <div className="mb-8">
@@ -19,7 +22,12 @@ export default async function ConfiguracoesPage() {
         initialLogoUrl={agency?.whiteLabelConfig?.logoUrl ?? null}
         initialPrimaryColor={agency?.whiteLabelConfig?.primaryColor ?? null}
         initialSecondaryColor={agency?.whiteLabelConfig?.secondaryColor ?? null}
+        initialCustomDomain={agency?.whiteLabelConfig?.customDomain ?? null}
+        initialCustomDomainVerified={agency?.whiteLabelConfig?.customDomainVerified ?? false}
         agencyName={agency?.name ?? 'Sua agência'}
+        agencySlug={agency?.slug ?? ''}
+        plan={agency?.plan ?? 'STARTER'}
+        subdomainUrl={subdomainUrl}
       />
     </div>
   )

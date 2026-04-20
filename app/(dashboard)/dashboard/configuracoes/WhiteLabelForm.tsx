@@ -2,8 +2,9 @@
 
 import { useRef, useState, useTransition } from 'react'
 import Image from 'next/image'
-import { Upload, X, Palette, Globe, ImageIcon, CheckCircle2, AlertCircle } from 'lucide-react'
+import { Upload, X, Palette, Globe, ImageIcon, CheckCircle2, AlertCircle, Copy, ExternalLink, ArrowUpRight, Lock, Loader2, Trash2 } from 'lucide-react'
 import { updateWhitelabel } from '@/app/actions/whitelabel'
+import { saveCustomDomain, verifyCustomDomain, removeCustomDomain } from '@/app/actions/customDomain'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -13,7 +14,12 @@ interface WhiteLabelFormProps {
   initialLogoUrl: string | null
   initialPrimaryColor: string | null
   initialSecondaryColor: string | null
+  initialCustomDomain: string | null
+  initialCustomDomainVerified: boolean
   agencyName: string
+  agencySlug: string
+  plan: 'STARTER' | 'PRO' | 'AGENCY'
+  subdomainUrl: string | null
 }
 
 const HEX_RE = /^#[0-9a-fA-F]{6}$/
@@ -26,10 +32,25 @@ export function WhiteLabelForm({
   initialLogoUrl,
   initialPrimaryColor,
   initialSecondaryColor,
+  initialCustomDomain,
+  initialCustomDomainVerified,
   agencyName,
+  agencySlug,
+  plan,
+  subdomainUrl,
 }: WhiteLabelFormProps) {
   const [isPending, startTransition] = useTransition()
   const [result, setResult] = useState<{ success: boolean; message?: string; error?: string } | null>(null)
+  const [copied, setCopied] = useState(false)
+
+  // Custom domain state
+  const [customDomain, setCustomDomain] = useState<string | null>(initialCustomDomain)
+  const [domainVerified, setDomainVerified] = useState(initialCustomDomainVerified)
+  const [domainInput, setDomainInput] = useState(initialCustomDomain ?? '')
+  const [isDomainSaving, startDomainSave] = useTransition()
+  const [isDomainVerifying, startDomainVerify] = useTransition()
+  const [isDomainRemoving, startDomainRemove] = useTransition()
+  const [domainFeedback, setDomainFeedback] = useState<{ success: boolean; message: string } | null>(null)
 
   const [logoPreview, setLogoPreview] = useState<string | null>(initialLogoUrl)
   const [primaryColor, setPrimaryColor] = useState(initialPrimaryColor ?? '#2563eb')
@@ -84,6 +105,56 @@ export function WhiteLabelForm({
   function handleSecondaryHexChange(value: string) {
     setSecondaryHexInput(value)
     if (isValidHex(value)) setSecondaryColor(value)
+  }
+
+  function handleSaveDomain() {
+    setDomainFeedback(null)
+    startDomainSave(async () => {
+      const res = await saveCustomDomain(domainInput)
+      if (res.success) {
+        setCustomDomain(res.domain)
+        setDomainVerified(false)
+        setDomainFeedback({ success: true, message: 'Domínio salvo. Configure o CNAME abaixo e clique em Verificar.' })
+      } else {
+        setDomainFeedback({ success: false, message: res.error })
+      }
+    })
+  }
+
+  function handleVerifyDomain() {
+    setDomainFeedback(null)
+    startDomainVerify(async () => {
+      const res = await verifyCustomDomain()
+      if (res.success) {
+        setDomainVerified(true)
+        setDomainFeedback({ success: true, message: 'Domínio verificado e ativo!' })
+      } else {
+        setDomainFeedback({ success: false, message: res.error })
+      }
+    })
+  }
+
+  function handleRemoveDomain() {
+    setDomainFeedback(null)
+    startDomainRemove(async () => {
+      const res = await removeCustomDomain()
+      if (res.success) {
+        setCustomDomain(null)
+        setDomainVerified(false)
+        setDomainInput('')
+        setDomainFeedback({ success: true, message: 'Domínio removido com sucesso.' })
+      } else {
+        setDomainFeedback({ success: false, message: res.error })
+      }
+    })
+  }
+
+  function handleCopy() {
+    if (!subdomainUrl) return
+    navigator.clipboard.writeText(subdomainUrl).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
   }
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -387,44 +458,245 @@ export function WhiteLabelForm({
         </div>
       </div>
 
-      {/* Seção: Domínio Customizado */}
+      {/* Seção: Domínio */}
       <div>
         <div className="flex items-center gap-3 mb-4">
           <div className="h-px flex-1 bg-slate-800" />
           <span className="text-xs font-semibold text-slate-500 uppercase tracking-widest">
-            Domínio Customizado
+            Domínio do cliente
           </span>
           <div className="h-px flex-1 bg-slate-800" />
         </div>
 
-        <Card className="p-6 bg-slate-900 border-slate-800 shadow-none relative overflow-hidden">
-          <div className="absolute top-4 right-4">
-            <span className="text-xs font-semibold bg-violet-500/20 text-violet-300 px-2.5 py-1 rounded-full border border-violet-500/20">
-              Em breve
+        {/* Card: Subdomínio Metrik — disponível para todos os planos */}
+        <Card className="p-6 bg-slate-900 border-slate-800 shadow-none mb-4">
+          <div className="flex items-center gap-2 mb-1">
+            <Globe className="w-4 h-4 text-emerald-400" />
+            <h2 className="text-sm font-semibold text-white">Subdomínio Metrik</h2>
+            <span className="ml-auto text-xs font-semibold bg-emerald-500/15 text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-500/20">
+              Ativo
             </span>
           </div>
-
-          <div className="flex items-center gap-2 mb-2">
-            <Globe className="w-4 h-4 text-slate-400" />
-            <h2 className="text-sm font-semibold text-white">Domínio personalizado</h2>
-          </div>
           <p className="text-sm text-slate-400 mb-4">
-            Use seu próprio domínio para o dashboard dos clientes.
+            Seu link de acesso para clientes. Funciona imediatamente, sem configuração.
           </p>
-          <div className="flex items-center gap-3">
-            <div className="flex-1 h-9 rounded-md bg-slate-800 border border-slate-700 flex items-center px-3">
-              <span className="text-sm text-slate-500 font-mono">dashboard.suaagencia.com.br</span>
+
+          <div className="flex items-center gap-2">
+            <div className="flex-1 h-9 rounded-md bg-slate-800 border border-slate-700 flex items-center px-3 min-w-0">
+              <span className="text-sm text-slate-300 font-mono truncate">
+                {subdomainUrl ?? `${agencySlug}.app.metrik.com.br`}
+              </span>
             </div>
             <Button
               type="button"
-              disabled
+              variant="outline"
               size="sm"
-              className="bg-slate-800 border border-slate-700 text-slate-500 cursor-not-allowed hover:bg-slate-800"
+              onClick={handleCopy}
+              className="shrink-0 border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white gap-1.5"
             >
-              Configurar
+              {copied ? (
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+              ) : (
+                <Copy className="w-3.5 h-3.5" />
+              )}
+              {copied ? 'Copiado!' : 'Copiar'}
             </Button>
+            {subdomainUrl && (
+              <a
+                href={subdomainUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="shrink-0 h-9 w-9 rounded-md border border-slate-700 bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 transition-colors flex items-center justify-center"
+                title="Abrir em nova aba"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+            )}
           </div>
         </Card>
+
+        {/* Card: Domínio próprio — exclusivo para Pro e Agency */}
+        {plan === 'STARTER' ? (
+          <Card className="p-6 bg-slate-900 border-slate-800 shadow-none relative overflow-hidden">
+            {/* Overlay de desfoque para indicar conteúdo bloqueado */}
+            <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-[1px] rounded-lg z-10 flex flex-col items-center justify-center gap-3">
+              <div className="flex items-center gap-2 bg-slate-800 border border-slate-700 rounded-full px-4 py-2">
+                <Lock className="w-3.5 h-3.5 text-violet-400" />
+                <span className="text-sm font-medium text-white">Disponível nos planos Pro e Agency</span>
+              </div>
+              <a
+                href="/dashboard/billing"
+                className="flex items-center gap-1.5 text-sm text-violet-400 hover:text-violet-300 transition-colors font-medium"
+              >
+                Fazer upgrade agora
+                <ArrowUpRight className="w-3.5 h-3.5" />
+              </a>
+            </div>
+
+            {/* Conteúdo do card (visível atrás do overlay) */}
+            <div className="flex items-center gap-2 mb-2">
+              <Globe className="w-4 h-4 text-slate-500" />
+              <h2 className="text-sm font-semibold text-slate-500">Domínio personalizado</h2>
+            </div>
+            <p className="text-sm text-slate-600 mb-4">
+              Use seu próprio domínio para o dashboard dos clientes.
+            </p>
+            <div className="flex items-center gap-3">
+              <div className="flex-1 h-9 rounded-md bg-slate-800 border border-slate-700 flex items-center px-3">
+                <span className="text-sm text-slate-600 font-mono">dashboard.suaagencia.com.br</span>
+              </div>
+              <Button
+                type="button"
+                disabled
+                size="sm"
+                className="bg-slate-800 border border-slate-700 text-slate-600 cursor-not-allowed"
+              >
+                Configurar
+              </Button>
+            </div>
+          </Card>
+        ) : (
+          <Card className="p-6 bg-slate-900 border-slate-800 shadow-none">
+            <div className="flex items-center gap-2 mb-1">
+              <Globe className="w-4 h-4 text-slate-400" />
+              <h2 className="text-sm font-semibold text-white">Domínio personalizado</h2>
+              {domainVerified ? (
+                <span className="ml-auto text-xs font-semibold bg-emerald-500/15 text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                  Ativo
+                </span>
+              ) : customDomain ? (
+                <span className="ml-auto text-xs font-semibold bg-amber-500/15 text-amber-400 px-2 py-0.5 rounded-full border border-amber-500/20">
+                  Pendente
+                </span>
+              ) : null}
+            </div>
+            <p className="text-sm text-slate-400 mb-4">
+              Use seu próprio domínio para remover qualquer referência ao Metrik da URL dos clientes.
+            </p>
+
+            {/* Feedback de ações do domínio */}
+            {domainFeedback && (
+              <div
+                className={`rounded-lg border px-4 py-3 text-sm flex items-center gap-2 mb-4 ${
+                  domainFeedback.success
+                    ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300'
+                    : 'border-red-500/30 bg-red-500/10 text-red-300'
+                }`}
+              >
+                {domainFeedback.success
+                  ? <CheckCircle2 className="w-4 h-4 shrink-0" />
+                  : <AlertCircle className="w-4 h-4 shrink-0" />}
+                {domainFeedback.message}
+              </div>
+            )}
+
+            {/* Domínio verificado — mostrar com opção de remover */}
+            {domainVerified && customDomain ? (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 h-9 rounded-md bg-slate-800 border border-emerald-500/30 flex items-center px-3 min-w-0">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0 mr-2" />
+                    <span className="text-sm text-slate-300 font-mono truncate">{customDomain}</span>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleRemoveDomain}
+                    disabled={isDomainRemoving}
+                    className="shrink-0 border-red-500/30 bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 gap-1.5"
+                  >
+                    {isDomainRemoving
+                      ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      : <Trash2 className="w-3.5 h-3.5" />}
+                    Remover
+                  </Button>
+                </div>
+              </div>
+            ) : customDomain ? (
+              /* Domínio salvo mas não verificado — mostrar instruções DNS */
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 h-9 rounded-md bg-slate-800 border border-amber-500/30 flex items-center px-3 min-w-0">
+                    <span className="text-sm text-slate-300 font-mono truncate">{customDomain}</span>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleRemoveDomain}
+                    disabled={isDomainRemoving}
+                    className="shrink-0 border-slate-700 bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white gap-1.5"
+                  >
+                    {isDomainRemoving
+                      ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      : <Trash2 className="w-3.5 h-3.5" />}
+                    Remover
+                  </Button>
+                </div>
+
+                {/* Instruções DNS */}
+                <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-4 space-y-3">
+                  <p className="text-sm font-medium text-amber-300">Configure o CNAME no seu DNS</p>
+                  <p className="text-xs text-slate-400">
+                    No painel do seu provedor de DNS (ex: Cloudflare, GoDaddy, Registro.br), adicione o seguinte registro:
+                  </p>
+                  <div className="rounded-md bg-slate-900 border border-slate-700 overflow-hidden">
+                    <div className="grid grid-cols-3 text-xs text-slate-500 px-3 py-1.5 border-b border-slate-700 font-medium uppercase tracking-wide">
+                      <span>Tipo</span>
+                      <span>Nome</span>
+                      <span>Valor</span>
+                    </div>
+                    <div className="grid grid-cols-3 text-xs text-slate-300 font-mono px-3 py-2">
+                      <span>CNAME</span>
+                      <span className="truncate">{customDomain.split('.')[0]}</span>
+                      <span>cname.vercel-dns.com</span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-slate-500">
+                    A propagação do DNS pode levar de alguns minutos até 24h. Após configurar, clique em Verificar.
+                  </p>
+                </div>
+
+                <Button
+                  type="button"
+                  onClick={handleVerifyDomain}
+                  disabled={isDomainVerifying}
+                  className="w-full bg-violet-600 hover:bg-violet-700 text-white gap-2"
+                >
+                  {isDomainVerifying && <Loader2 className="w-4 h-4 animate-spin" />}
+                  {isDomainVerifying ? 'Verificando DNS...' : 'Verificar configuração'}
+                </Button>
+              </div>
+            ) : (
+              /* Nenhum domínio configurado — input para adicionar */
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="text"
+                    value={domainInput}
+                    onChange={(e) => setDomainInput(e.target.value)}
+                    placeholder="dashboard.suaagencia.com.br"
+                    className="flex-1 h-9 bg-slate-800 border-slate-700 text-white placeholder:text-slate-500 font-mono text-sm focus-visible:ring-violet-500"
+                  />
+                  <Button
+                    type="button"
+                    onClick={handleSaveDomain}
+                    disabled={isDomainSaving || !domainInput.trim()}
+                    size="sm"
+                    className="shrink-0 bg-violet-600 hover:bg-violet-700 text-white gap-1.5 disabled:opacity-50"
+                  >
+                    {isDomainSaving && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                    {isDomainSaving ? 'Salvando...' : 'Configurar'}
+                  </Button>
+                </div>
+                <p className="text-xs text-slate-500">
+                  Insira o subdomínio que seus clientes usarão para acessar o dashboard. Ex: <span className="font-mono text-slate-400">dashboard.suaagencia.com.br</span>
+                </p>
+              </div>
+            )}
+          </Card>
+        )}
       </div>
 
       {/* Barra de ação sticky */}

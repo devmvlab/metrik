@@ -355,6 +355,65 @@ export async function completeGoogleSignup(
 }
 
 // ---------------------------------------------------------------------------
+// requestPasswordReset — envia email de redefinição de senha
+// ---------------------------------------------------------------------------
+
+export type ResetRequestResult = { success: boolean; error?: string } | null
+
+export async function requestPasswordReset(
+  _prevState: ResetRequestResult,
+  formData: FormData,
+): Promise<ResetRequestResult> {
+  const email = formData.get('email') as string
+
+  if (!z.string().email().safeParse(email).success) {
+    return { success: false, error: 'Informe um email válido' }
+  }
+
+  const origin = headers().get('origin') ?? process.env.NEXT_PUBLIC_APP_URL!
+  const supabase = createClient()
+
+  // Sempre retorna sucesso para não vazar se o email existe ou não
+  await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${origin}/auth/callback?next=/redefinir-senha`,
+  })
+
+  return { success: true }
+}
+
+// ---------------------------------------------------------------------------
+// updatePassword — redefine senha (chamado na página /redefinir-senha)
+// ---------------------------------------------------------------------------
+
+export async function updatePassword(
+  _prevState: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
+  const parse = z
+    .string()
+    .min(8, 'Senha deve ter ao menos 8 caracteres')
+    .safeParse(formData.get('password'))
+
+  if (!parse.success) {
+    return { error: parse.error.issues[0].message }
+  }
+
+  const supabase = createClient()
+  const { error } = await supabase.auth.updateUser({ password: parse.data })
+
+  if (error) {
+    return { error: 'Erro ao redefinir senha. O link pode ter expirado. Solicite um novo.' }
+  }
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  const role = user?.app_metadata?.role
+
+  redirect(role === 'CLIENT_VIEWER' ? '/client' : '/dashboard')
+}
+
+// ---------------------------------------------------------------------------
 // signOut
 // ---------------------------------------------------------------------------
 

@@ -68,6 +68,17 @@ export async function getAgencyByStripeCustomerId(stripeCustomerId: string) {
 }
 
 /**
+ * Busca agência pelo domínio customizado configurado no white-label.
+ * Versão Prisma para uso fora do Edge Runtime.
+ */
+export async function getAgencyByCustomDomain(domain: string) {
+  return db.whiteLabelConfig.findFirst({
+    where: { customDomain: domain, customDomainVerified: true },
+    include: { agency: true },
+  })
+}
+
+/**
  * Retorna a agência com o total de clientes cadastrados.
  * Usado para verificar uso do plano e exibir barra de progresso.
  */
