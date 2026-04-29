@@ -45,7 +45,15 @@ export async function getGoogleAdsMetrics(
   if (!integration) throw new Error('Integração não encontrada')
   if (integration.status !== 'CONNECTED') throw new Error('Integração não está conectada')
 
+  if (!integration.accountId || integration.accountId === 'unknown') {
+    throw new Error('Customer ID do Google Ads inválido. Reconecte a integração.')
+  }
+
   const refreshToken = integration.refreshToken ? decrypt(integration.refreshToken) : ''
+
+  if (!refreshToken) {
+    throw new Error('Refresh token do Google Ads ausente. Reconecte a integração.')
+  }
 
   const client = new GoogleAdsApi({
     client_id: process.env.GOOGLE_CLIENT_ID!,

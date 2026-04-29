@@ -484,7 +484,7 @@ export function WhiteLabelForm({
           <div className="flex items-center gap-2">
             <div className="flex-1 h-9 rounded-md bg-slate-800 border border-slate-700 flex items-center px-3 min-w-0">
               <span className="text-sm text-slate-300 font-mono truncate">
-                {subdomainUrl ?? `${agencySlug}.app.metrik.com.br`}
+                {subdomainUrl ?? `${agencySlug}.app.metrikapp.com.br`}
               </span>
             </div>
             <Button

@@ -1,3 +1,4 @@
+import { GoogleAdsApi } from 'google-ads-api'
 import { db } from '@/lib/db'
 import { encrypt } from '@/lib/utils/crypto'
 
@@ -57,26 +58,25 @@ export async function handleGoogleAdsCallback(code: string, clientId: string): P
     throw new Error('Google não retornou refresh_token — usuário pode precisar revogar e reconectar')
   }
 
-  // 2. Buscar customer_id via Google Ads API (listAccessibleCustomers)
-  const customersRes = await fetch(
-    'https://googleads.googleapis.com/v17/customers:listAccessibleCustomers',
-    {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'developer-token': process.env.GOOGLE_ADS_DEVELOPER_TOKEN ?? '',
-      },
-    }
-  )
+  // 2. Buscar customer_id via SDK (evita versão de API hardcoded)
+  const adsClient = new GoogleAdsApi({
+    client_id: process.env.GOOGLE_CLIENT_ID!,
+    client_secret: process.env.GOOGLE_CLIENT_SECRET!,
+    developer_token: process.env.GOOGLE_ADS_DEVELOPER_TOKEN ?? '',
+  })
 
-  let customerId = 'unknown'
-  if (customersRes.ok) {
-    const customersData = await customersRes.json()
-    // resourceNames vêm no formato "customers/XXXXXXXXXX"
-    const firstResource = customersData.resourceNames?.[0] as string | undefined
-    if (firstResource) {
-      customerId = firstResource.replace('customers/', '')
-    }
+  const customersResponse = await adsClient.listAccessibleCustomers(refreshToken)
+  const resourceNames = customersResponse.resource_names
+
+  if (!resourceNames || resourceNames.length === 0) {
+    throw new Error(
+      'Nenhuma conta Google Ads encontrada para este usuário. ' +
+      'Verifique se a conta tem acesso ao Google Ads e se o developer token está aprovado.'
+    )
   }
+
+  // resourceNames vêm no formato "customers/XXXXXXXXXX"
+  const customerId = resourceNames[0].replace('customers/', '')
 
   // 3. Upsert na tabela Integration
   await db.integration.upsert({

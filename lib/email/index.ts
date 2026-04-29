@@ -5,8 +5,8 @@ import TrialExpiringEmail from '@/emails/TrialExpiringEmail'
 import PaymentFailedEmail from '@/emails/PaymentFailedEmail'
 import IntegrationExpiredEmail from '@/emails/IntegrationExpiredEmail'
 
-// TODO: trocar para domínio verificado em produção (ex: noreply@metrik.com.br)
-const FROM = 'Metrik <onboarding@resend.dev>'
+// TODO: trocar para domínio verificado em produção (ex: noreply@metrikapp.com.br)
+const FROM = 'Metrik <noreply@metrikapp.com.br>'
 
 const PLATFORM_LABELS: Record<string, string> = {
   META_ADS: 'Meta Ads',

@@ -6,7 +6,7 @@ export default async function ConfiguracoesPage() {
   const session = await requireAgencyAdmin()
   const agency = await getAgencyById(session.agencyId)
 
-  const appDomain = process.env.NEXT_PUBLIC_APP_DOMAIN ?? 'app.metrik.com.br'
+  const appDomain = process.env.NEXT_PUBLIC_APP_DOMAIN ?? 'app.metrikapp.com.br'
   const subdomainUrl = agency?.slug ? `https://${agency.slug}.${appDomain}` : null
 
   return (

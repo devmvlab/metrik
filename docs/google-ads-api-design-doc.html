@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Metrik — Google Ads API Design Documentation</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: Arial, sans-serif;
+      font-size: 13px;
+      line-height: 1.6;
+      color: #111;
+      max-width: 760px;
+      margin: 40px auto;
+      padding: 0 32px 60px;
+    }
+    h1 { font-size: 18px; margin-bottom: 24px; }
+    .section { margin-bottom: 20px; }
+    .label { font-weight: bold; display: inline; }
+    .note {
+      color: #c00;
+      font-style: italic;
+      margin-bottom: 24px;
+      font-size: 12px;
+    }
+    ul { margin: 6px 0 0 20px; }
+    ul li { margin-bottom: 4px; }
+    a { color: #1155cc; }
+
+    /* --- Mockup styles --- */
+    .mockup-wrapper { margin-top: 20px; }
+    .mockup {
+      border: 2px solid #333;
+      border-radius: 6px;
+      overflow: hidden;
+      margin-bottom: 28px;
+      max-width: 620px;
+    }
+    .mockup-header {
+      background: #1a73e8;
+      color: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 16px;
+      font-size: 15px;
+      font-weight: bold;
+    }
+    .mockup-logo {
+      background: #fff;
+      color: #1a73e8;
+      border-radius: 4px;
+      padding: 3px 10px;
+      font-size: 13px;
+      font-weight: bold;
+    }
+    .mockup-body { padding: 16px; background: #fff; }
+    .mockup-title {
+      font-size: 14px;
+      font-weight: bold;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .mockup-period {
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      padding: 2px 8px;
+      font-size: 12px;
+      color: #555;
+    }
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 1px;
+      background: #ccc;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+    .metric-cell {
+      background: #f9f9f9;
+      padding: 10px 8px;
+      text-align: center;
+    }
+    .metric-label { font-size: 11px; font-weight: bold; color: #333; margin-bottom: 4px; }
+    .metric-value { font-size: 14px; color: #111; }
+
+    .campaign-table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 10px; }
+    .campaign-table th {
+      background: #e8f0fe;
+      padding: 5px 8px;
+      text-align: left;
+      font-weight: bold;
+      border-bottom: 1px solid #ccc;
+    }
+    .campaign-table td { padding: 5px 8px; border-bottom: 1px solid #eee; }
+    .campaign-table tr:last-child td { border-bottom: none; }
+
+    .connect-box {
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 16px;
+      max-width: 400px;
+      background: #fafafa;
+    }
+    .connect-box .title { font-weight: bold; font-size: 13px; margin-bottom: 8px; }
+    .connect-box .desc { font-size: 11px; color: #555; margin-bottom: 12px; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #1a73e8;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      padding: 7px 14px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .google-g {
+      width: 16px; height: 16px;
+      background: #fff;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      color: #1a73e8;
+      font-size: 11px;
+    }
+    .caption {
+      font-size: 11px;
+      color: #555;
+      font-style: italic;
+      margin-top: 4px;
+    }
+
+    .chart-area {
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 12px;
+      margin-top: 10px;
+      background: #f9f9f9;
+    }
+    .chart-bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      height: 80px;
+    }
+    .bar-group { display: flex; flex-direction: column; align-items: center; gap: 2px; flex: 1; }
+    .bar { background: #1a73e8; border-radius: 2px 2px 0 0; width: 100%; }
+    .bar-label { font-size: 9px; color: #666; }
+
+    @media print {
+      body { margin: 0; padding: 20px 32px; }
+    }
+  </style>
+</head>
+<body>
+
+  <p class="note">Note: this tool is externally accessible. Screenshots and mockups of the tool are included below.</p>
+
+  <div class="section">
+    <span class="label">Company Name:</span> Metrik
+  </div>
+
+  <div class="section">
+    <span class="label">Business Model:</span>
+    Metrik is a B2B SaaS platform that provides white-label performance dashboards for digital marketing agencies.
+    Agencies subscribe to Metrik, customize the platform with their own branding, and use it to deliver real-time analytics
+    dashboards to their end clients. Metrik is not an advertiser — it does not own any Google Ads accounts and does not
+    create or manage campaigns. Instead, it acts as a reporting intermediary: each agency connects their clients' Google Ads
+    accounts to Metrik via OAuth, and the platform displays that performance data within branded dashboards.
+    Metrik serves multiple agencies simultaneously (multi-tenant), and each agency's data is fully isolated from others.
+  </div>
+
+  <div class="section">
+    <span class="label">Tool Access/Use:</span>
+    The tool is accessed externally via a web application at the agency's custom domain (e.g., <em>reports.agencyname.com</em>
+    or <em>app.metrik.com.br/agency-slug</em>). There are two user profiles:
+    <ul>
+      <li><strong>Agency Admin</strong> — logs in to manage client accounts, connect integrations, and view all dashboards.</li>
+      <li><strong>Client Viewer</strong> — receives an email invitation and logs in to view only their own performance dashboard.</li>
+    </ul>
+    <br/>
+    The Agency Admin is the only user who initiates the Google Ads OAuth flow. They authorize Metrik to access a specific
+    Google Ads customer account on behalf of their client. Once connected, both the admin and the invited client viewer can
+    see the read-only performance data for that account within the dashboard. No user can modify campaigns, bids, budgets,
+    or any other settings — the tool is strictly for reporting.
+  </div>
+
+  <div class="section">
+    <span class="label">Tool Design:</span>
+    <br/><br/>
+    <strong>1. OAuth Authorization Flow</strong><br/>
+    When an Agency Admin connects a Google Ads account for a client, Metrik redirects the user to Google's OAuth 2.0
+    authorization endpoint with the scope <code>https://www.googleapis.com/auth/adwords</code> and
+    <code>access_type=offline</code> to obtain a refresh token. After the user grants consent, Google redirects back to
+    Metrik's callback route (<code>/api/integrations/google-ads/callback</code>), where the authorization code is exchanged
+    for an access token and refresh token. Both tokens are immediately encrypted with AES-256 and stored in the database.
+    The plain-text tokens are never persisted.
+    <br/><br/>
+    <strong>2. Customer ID Discovery</strong><br/>
+    After the token exchange, Metrik calls <code>customers:listAccessibleCustomers</code> to retrieve the Customer ID
+    associated with the authorized account. This ID is stored and used in all subsequent API queries.
+    <br/><br/>
+    <strong>3. Data Retrieval and Caching</strong><br/>
+    When a user opens a dashboard, Metrik checks an internal cache table (<code>integration_data_cache</code>) for valid data
+    (TTL: 4 hours). If no valid cache exists, it calls the Google Ads API using GAQL queries scoped to the stored Customer ID.
+    Data is fetched only for the specific client whose dashboard is being viewed. Results are cached and served to the UI.
+    <br/><br/>
+    <strong>4. Display</strong><br/>
+    The dashboard UI reads exclusively from the internal cache — it never calls the Google Ads API directly from the
+    client side. Agencies can view account-level KPIs (cost, impressions, clicks, conversions, ROAS) and campaign-level
+    breakdowns over selectable date ranges (last 7 days, last 30 days, custom range). No write operations are performed
+    at any point.
+  </div>
+
+  <div class="section">
+    <span class="label">API Services Called:</span>
+    <ul>
+      <li>
+        <strong>CustomerService — <code>customers:listAccessibleCustomers</code></strong><br/>
+        Called once at OAuth callback time to discover the Customer ID linked to the authorized account.
+      </li>
+      <li>
+        <strong>GoogleAdsService — <code>campaign</code> resource (GAQL)</strong><br/>
+        Fetches campaign-level performance metrics:
+        <code>campaign.id</code>, <code>campaign.name</code>, <code>metrics.cost_micros</code>,
+        <code>metrics.impressions</code>, <code>metrics.clicks</code>, <code>metrics.ctr</code>,
+        <code>metrics.average_cpc</code>, <code>metrics.conversions</code>,
+        <code>metrics.cost_per_conversion</code>, <code>metrics.all_conversions_value</code>.
+        Filtered by <code>segments.date</code> range and <code>campaign.status = 'ENABLED'</code>.
+      </li>
+      <li>
+        <strong>GoogleAdsService — <code>customer</code> resource (GAQL)</strong><br/>
+        Fetches account-level daily aggregated metrics:
+        <code>segments.date</code>, <code>metrics.cost_micros</code>, <code>metrics.impressions</code>,
+        <code>metrics.clicks</code>, <code>metrics.conversions</code>.
+        Used to render time-series trend charts on the dashboard.
+      </li>
+    </ul>
+  </div>
+
+  <div class="section mockup-wrapper">
+    <span class="label">Tool Mockups:</span>
+    <br/><br/>
+
+    <!-- Mockup 1: OAuth Connect Screen -->
+    <div class="connect-box">
+      <div class="title">Connect Google Ads</div>
+      <div class="desc">
+        Authorize Metrik to read performance data from your client's Google Ads account.
+        Read-only access — no changes will be made to campaigns.
+      </div>
+      <button class="btn">
+        <span class="google-g">G</span>
+        Connect with Google
+      </button>
+    </div>
+    <p class="caption">Fig. 1 — OAuth connection screen shown to the Agency Admin when linking a client's Google Ads account.</p>
+
+    <br/>
+
+    <!-- Mockup 2: Account-level KPI dashboard -->
+    <div class="mockup">
+      <div class="mockup-header">
+        <span>Performance Dashboard</span>
+        <span class="mockup-logo">Agency Brand</span>
+      </div>
+      <div class="mockup-body">
+        <div class="mockup-title">
+          Google Ads — Account Performance
+          <span class="mockup-period">Last 30 days ▼</span>
+        </div>
+        <div class="metrics-grid">
+          <div class="metric-cell">
+            <div class="metric-label">Cost</div>
+            <div class="metric-value">R$12,430</div>
+          </div>
+          <div class="metric-cell">
+            <div class="metric-label">Impressions</div>
+            <div class="metric-value">842,100</div>
+          </div>
+          <div class="metric-cell">
+            <div class="metric-label">Clicks</div>
+            <div class="metric-value">18,540</div>
+          </div>
+          <div class="metric-cell">
+            <div class="metric-label">Conversions</div>
+            <div class="metric-value">623</div>
+          </div>
+          <div class="metric-cell">
+            <div class="metric-label">ROAS</div>
+            <div class="metric-value">3.8×</div>
+          </div>
+        </div>
+
+        <div class="chart-area">
+          <div style="font-size:11px; font-weight:bold; margin-bottom:8px;">Daily Cost Trend (R$)</div>
+          <div class="chart-bars">
+            <div class="bar-group"><div class="bar" style="height:38px"></div><div class="bar-label">Apr 1</div></div>
+            <div class="bar-group"><div class="bar" style="height:52px"></div><div class="bar-label">Apr 5</div></div>
+            <div class="bar-group"><div class="bar" style="height:45px"></div><div class="bar-label">Apr 9</div></div>
+            <div class="bar-group"><div class="bar" style="height:60px"></div><div class="bar-label">Apr 13</div></div>
+            <div class="bar-group"><div class="bar" style="height:50px"></div><div class="bar-label">Apr 17</div></div>
+            <div class="bar-group"><div class="bar" style="height:70px"></div><div class="bar-label">Apr 21</div></div>
+            <div class="bar-group"><div class="bar" style="height:55px"></div><div class="bar-label">Apr 23</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="caption">Fig. 2 — Account-level KPI summary with daily cost trend chart. Visible to both Agency Admin and Client Viewer.</p>
+
+    <br/>
+
+    <!-- Mockup 3: Campaign breakdown table -->
+    <div class="mockup">
+      <div class="mockup-header">
+        <span>Campaign Breakdown</span>
+        <span class="mockup-logo">Agency Brand</span>
+      </div>
+      <div class="mockup-body">
+        <div class="mockup-title">
+          Active Campaigns
+          <span class="mockup-period">Last 30 days ▼</span>
+        </div>
+        <table class="campaign-table">
+          <thead>
+            <tr>
+              <th>Campaign</th>
+              <th>Cost (R$)</th>
+              <th>Impr.</th>
+              <th>Clicks</th>
+              <th>CTR</th>
+              <th>Conv.</th>
+              <th>ROAS</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Brand Search</td>
+              <td>4,210.00</td>
+              <td>210,300</td>
+              <td>8,100</td>
+              <td>3.85%</td>
+              <td>280</td>
+              <td>5.1×</td>
+            </tr>
+            <tr>
+              <td>Remarketing</td>
+              <td>3,870.00</td>
+              <td>340,500</td>
+              <td>6,200</td>
+              <td>1.82%</td>
+              <td>210</td>
+              <td>3.9×</td>
+            </tr>
+            <tr>
+              <td>Prospecting</td>
+              <td>4,350.00</td>
+              <td>291,300</td>
+              <td>4,240</td>
+              <td>1.46%</td>
+              <td>133</td>
+              <td>2.4×</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <p class="caption">Fig. 3 — Campaign-level breakdown table. All data is read-only; no actions are available to modify campaigns.</p>
+
+  </div>
+
+</body>
+</html>

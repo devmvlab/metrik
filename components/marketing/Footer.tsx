@@ -17,14 +17,17 @@ export function Footer() {
             © {new Date().getFullYear()} Metrik. Todos os direitos reservados.
           </p>
 
-          <div className="flex items-center gap-6 text-sm text-slate-500">
-            <Link href="/login" className="transition-colors hover:text-slate-300">
-              Entrar
+          <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-slate-500">
+            <Link href="/sobre" className="transition-colors hover:text-slate-300">
+              Sobre
             </Link>
-            <Link href="/cadastro" className="transition-colors hover:text-slate-300">
-              Criar conta
+            <Link href="/privacidade" className="transition-colors hover:text-slate-300">
+              Privacidade
             </Link>
-            <a href="mailto:contato@metrik.com.br" className="transition-colors hover:text-slate-300">
+            <Link href="/termos" className="transition-colors hover:text-slate-300">
+              Termos de Serviço
+            </Link>
+            <a href="mailto:contato@metrikapp.com.br" className="transition-colors hover:text-slate-300">
               Contato
             </a>
           </div>

@@ -28,7 +28,7 @@ export async function sendClientInviteEmail({
   )
 
   const { error } = await resend.emails.send({
-    from: `${agencyName} <onboarding@resend.dev>`,
+    from: `${agencyName} <noreply@metrikapp.com.br>`,
     to,
     subject: `${agencyName} convidou você para acessar seu dashboard`,
     html,

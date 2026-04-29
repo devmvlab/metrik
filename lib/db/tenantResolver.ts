@@ -75,10 +75,10 @@ export async function getAgencyContextByCustomDomain(domain: string): Promise<Ag
  * Usado no middleware (Edge Runtime) — não usa Prisma.
  */
 export async function resolveAgencyFromHost(host: string): Promise<AgencyContext | null> {
-  const appDomain = process.env.NEXT_PUBLIC_APP_DOMAIN ?? 'app.metrik.com.br'
+  const appDomain = process.env.NEXT_PUBLIC_APP_DOMAIN ?? 'app.metrikapp.com.br'
   const cleanHost = host.split(':')[0] // remove porta (dev)
 
-  // Subdomínio Metrik: {slug}.app.metrik.com.br
+  // Subdomínio Metrik: {slug}.app.metrikapp.com.br
   if (cleanHost.endsWith(`.${appDomain}`)) {
     const slug = cleanHost.slice(0, -(appDomain.length + 1))
     if (slug) return getAgencyContextBySlug(slug)
