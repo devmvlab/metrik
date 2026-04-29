@@ -19,10 +19,10 @@ export default function PrivacidadePage() {
             <p>
               O Metrik é uma plataforma SaaS white-label de dashboards de performance para agências
               de marketing digital, operada por{' '}
-              <strong className="text-white">[RAZÃO SOCIAL DA EMPRESA]</strong>, inscrita no CNPJ
-              sob o nº <strong className="text-white">[CNPJ]</strong>, com sede em{' '}
+              <strong className="text-white">MC TECH SOLUCOES LTDA</strong>, inscrita no CNPJ
+              sob o nº <strong className="text-white">50.791.909/0001-83</strong>, com sede em{' '}
               <strong className="text-white">
-                [ENDEREÇO COMPLETO], [CIDADE] — [ESTADO], [CEP], Brasil
+                Rua Luís Martins, 95, apto 27, Alto da Lapa, São Paulo — SP, CEP 05060-050, Brasil
               </strong>
               .
             </p>

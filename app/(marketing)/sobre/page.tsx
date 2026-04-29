@@ -124,7 +124,7 @@ export default function SobrePage() {
             <p>
               <span className="font-medium text-white">Endereço:</span>{' '}
               <span className="text-slate-400">
-                Rua [ENDEREÇO COMPLETO], [CIDADE] — [ESTADO], [CEP], Brasil
+                Rua Luís Martins, 95, apto 27, Alto da Lapa, São Paulo — SP, CEP 05060-050, Brasil
               </span>
             </p>
           </div>

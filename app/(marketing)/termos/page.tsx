@@ -24,8 +24,8 @@ export default function TermosPage() {
               </a>
               . Se você não concordar com estes termos, não utilize a plataforma. O Metrik é
               operado por{' '}
-              <strong className="text-white">[RAZÃO SOCIAL DA EMPRESA]</strong>, inscrita no CNPJ
-              sob o nº <strong className="text-white">[CNPJ]</strong>.
+              <strong className="text-white">MC TECH SOLUCOES LTDA</strong>, inscrita no CNPJ
+              sob o nº <strong className="text-white">50.791.909/0001-83</strong>.
             </p>
           </section>
 
@@ -173,7 +173,7 @@ export default function TermosPage() {
             </h2>
             <p>
               Todo o código, design, marca e conteúdo do Metrik são de propriedade exclusiva da{' '}
-              <strong className="text-white">[RAZÃO SOCIAL DA EMPRESA]</strong>. É vedada a
+              <strong className="text-white">MC TECH SOLUCOES LTDA</strong>. É vedada a
               reprodução, distribuição ou uso comercial sem autorização prévia por escrito. Os dados
               de performance das campanhas pertencem aos respectivos anunciantes e são tratados
               conforme nossa Política de Privacidade.
@@ -237,7 +237,7 @@ export default function TermosPage() {
             <h2 className="mb-4 text-xl font-semibold text-white">11. Lei aplicável e foro</h2>
             <p>
               Estes Termos são regidos pelas leis da República Federativa do Brasil. Fica eleito o
-              foro da comarca de <strong className="text-white">[CIDADE]</strong> — [ESTADO], com
+              foro da comarca de <strong className="text-white">São Paulo</strong> — SP, com
               exclusão de qualquer outro, por mais privilegiado que seja, para dirimir quaisquer
               controvérsias decorrentes deste instrumento.
             </p>
