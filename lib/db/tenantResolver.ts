@@ -49,6 +49,7 @@ export async function getAgencyContextByCustomDomain(domain: string): Promise<Ag
     .from('white_label_configs')
     .select('logo_url, primary_color, secondary_color, agencies(id, name, slug, plan)')
     .eq('custom_domain', domain)
+    .eq('custom_domain_verified', true)
     .single()
 
   if (error || !data) return null
@@ -85,9 +86,13 @@ export async function resolveAgencyFromHost(host: string): Promise<AgencyContext
     return null
   }
 
-  // Domínio principal, localhost e IPs privados — sem resolução
+  // Domínio principal, www, localhost e IPs privados — sem resolução
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? ''
+  const rootDomain = appUrl ? new URL(appUrl).hostname : 'metrikapp.com.br'
   if (
     cleanHost === appDomain ||
+    cleanHost === rootDomain ||
+    cleanHost === `www.${rootDomain}` ||
     cleanHost === 'localhost' ||
     /^127\./.test(cleanHost) ||
     /^192\.168\./.test(cleanHost) ||
