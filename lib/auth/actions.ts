@@ -370,12 +370,14 @@ export async function requestPasswordReset(
     return { success: false, error: 'Informe um email válido' }
   }
 
-  const origin = headers().get('origin') ?? process.env.NEXT_PUBLIC_APP_URL!
   const supabase = createClient()
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://metrikapp.com.br'
 
-  // Sempre retorna sucesso para não vazar se o email existe ou não
+  // Sempre retorna sucesso para não vazar se o email existe ou não.
+  // Usa o domínio principal (não o subdomínio/custom domain da agência) para
+  // garantir que o redirectTo esteja na lista de URLs permitidas do Supabase.
   await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${origin}/auth/callback?next=/redefinir-senha`,
+    redirectTo: `${appUrl}/auth/callback?next=/redefinir-senha`,
   })
 
   return { success: true }

@@ -26,6 +26,23 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
 
   return (
     <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Sobrescreve as classes violet do Tailwind quando em modo white-label */}
+      {isWhiteLabel && (
+        <style>{`
+          .auth-theme button[type="submit"] {
+            --tw-gradient-from: ${primaryColor} !important;
+            --tw-gradient-to: ${primaryColor} !important;
+          }
+          .auth-theme button[type="submit"]:hover {
+            --tw-gradient-from: ${primaryColor}dd !important;
+            --tw-gradient-to: ${primaryColor}dd !important;
+          }
+          .auth-theme .text-violet-400 { color: ${primaryColor} !important; }
+          .auth-theme .hover\\:text-violet-300:hover { color: ${primaryColor}cc !important; }
+          .auth-theme .focus-visible\\:ring-violet-500:focus-visible { --tw-ring-color: ${primaryColor}80 !important; }
+        `}</style>
+      )}
+
       {/* Glow de fundo — cor da agência no white-label, violeta padrão */}
       <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
         <div
@@ -34,7 +51,7 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
         />
       </div>
 
-      <div className="relative z-10 w-full max-w-md">
+      <div className={`relative z-10 w-full max-w-md${isWhiteLabel ? ' auth-theme' : ''}`}>
         {/* Logo: agência (white-label) ou Metrik (padrão) */}
         <div className="flex justify-center mb-8">
           {isWhiteLabel ? (
