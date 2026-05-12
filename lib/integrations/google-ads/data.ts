@@ -1,6 +1,6 @@
-import { GoogleAdsApi } from 'google-ads-api'
 import { db } from '@/lib/db'
 import { decrypt } from '@/lib/utils/crypto'
+import { createGoogleAdsClient } from './auth'
 
 const CACHE_TTL_MS = 4 * 60 * 60 * 1000 // 4 horas
 
@@ -55,11 +55,7 @@ export async function getGoogleAdsMetrics(
     throw new Error('Refresh token do Google Ads ausente. Reconecte a integração.')
   }
 
-  const client = new GoogleAdsApi({
-    client_id: process.env.GOOGLE_CLIENT_ID!,
-    client_secret: process.env.GOOGLE_CLIENT_SECRET!,
-    developer_token: process.env.GOOGLE_ADS_DEVELOPER_TOKEN ?? '',
-  })
+  const client = createGoogleAdsClient()
 
   const customer = client.Customer({
     customer_id: integration.accountId,

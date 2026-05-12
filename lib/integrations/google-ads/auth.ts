@@ -2,6 +2,16 @@ import { GoogleAdsApi } from 'google-ads-api'
 import { db } from '@/lib/db'
 import { encrypt } from '@/lib/utils/crypto'
 
+export function createGoogleAdsClient(): GoogleAdsApi {
+  const developerToken = process.env.GOOGLE_ADS_DEVELOPER_TOKEN
+  if (!developerToken) throw new Error('GOOGLE_ADS_DEVELOPER_TOKEN não configurado')
+  return new GoogleAdsApi({
+    client_id: process.env.GOOGLE_CLIENT_ID!,
+    client_secret: process.env.GOOGLE_CLIENT_SECRET!,
+    developer_token: developerToken,
+  })
+}
+
 const SCOPES = ['https://www.googleapis.com/auth/adwords']
 const TOKEN_URL = 'https://oauth2.googleapis.com/token'
 
@@ -59,11 +69,7 @@ export async function handleGoogleAdsCallback(code: string, clientId: string): P
   }
 
   // 2. Buscar customer_id via SDK (evita versão de API hardcoded)
-  const adsClient = new GoogleAdsApi({
-    client_id: process.env.GOOGLE_CLIENT_ID!,
-    client_secret: process.env.GOOGLE_CLIENT_SECRET!,
-    developer_token: process.env.GOOGLE_ADS_DEVELOPER_TOKEN ?? '',
-  })
+  const adsClient = createGoogleAdsClient()
 
   const customersResponse = await adsClient.listAccessibleCustomers(refreshToken)
   const resourceNames = customersResponse.resource_names
@@ -75,8 +81,35 @@ export async function handleGoogleAdsCallback(code: string, clientId: string): P
     )
   }
 
-  // resourceNames vêm no formato "customers/XXXXXXXXXX"
-  const customerId = resourceNames[0].replace('customers/', '')
+  // Filtrar contas que não são MCC (can_manage_clients = false)
+  // MCC accounts não podem executar queries diretamente
+  let customerId: string | null = null
+
+  for (const resourceName of resourceNames) {
+    const candidateId = resourceName.replace('customers/', '')
+    try {
+      const tempCustomer = adsClient.Customer({
+        customer_id: candidateId,
+        refresh_token: refreshToken,
+      })
+      const [customerInfo] = await tempCustomer.query(`
+        SELECT customer.id, customer.can_manage_clients
+        FROM customer
+        LIMIT 1
+      `) as unknown as [{ customer?: { id?: string; can_manage_clients?: boolean } }]
+      if (!customerInfo?.customer?.can_manage_clients) {
+        customerId = candidateId
+        break
+      }
+    } catch {
+      // conta inacessível, tentar a próxima
+    }
+  }
+
+  if (!customerId) {
+    // fallback: usar a primeira conta mesmo que seja MCC
+    customerId = resourceNames[0].replace('customers/', '')
+  }
 
   // 3. Upsert na tabela Integration
   await db.integration.upsert({
