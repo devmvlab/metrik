@@ -56,8 +56,13 @@ export async function handleGoogleAdsCallback(code: string, clientId: string): P
   })
 
   if (!tokenRes.ok) {
-    const err = await tokenRes.json()
-    throw new Error(`Google OAuth token exchange falhou: ${err.error_description ?? tokenRes.statusText}`)
+    const errBody = await tokenRes.text()
+    let errJson: Record<string, string> = {}
+    try { errJson = JSON.parse(errBody) } catch { /* não era JSON */ }
+    const detail = errJson.error_description ?? errJson.error ?? errBody ?? tokenRes.statusText
+    console.error('[Google Ads token exchange] status:', tokenRes.status, 'body:', errBody)
+    console.error('[Google Ads token exchange] redirect_uri usado:', getRedirectUri())
+    throw new Error(`Google OAuth token exchange falhou: ${detail}`)
   }
 
   const tokenData = await tokenRes.json()
